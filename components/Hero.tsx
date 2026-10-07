@@ -128,6 +128,7 @@ export default function Hero({ variant, cities }: Props) {
         <ul className="hero__legend" aria-label="Legenda do mapa">
           <li><span className="hero__legend-unit" aria-hidden="true" />{HERO.legend.units}</li>
           <li><span className="hero__legend-dot" aria-hidden="true" />{HERO.legend.asking}</li>
+          <li><span className="hero__legend-dot hero__legend-dot--hot" aria-hidden="true" />{HERO.legend.hot}</li>
         </ul>
         <button type="button" className={`hero__locate hero__locate--${geo}`} onClick={() => findMe(false)} disabled={geo === "asking"} aria-live="polite" title={HERO.geo.hint}>
           <span className="hero__locate-dot" aria-hidden="true" />

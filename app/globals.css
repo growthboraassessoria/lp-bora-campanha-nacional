@@ -505,6 +505,7 @@ a { color: inherit; text-decoration: none; }
 .hero__legend li { display: inline-flex; align-items: center; gap: 8px; }
 .hero__legend-unit { width: 11px; height: 11px; border-radius: 3px; background: #000; border: 1.5px solid var(--green); }
 .hero__legend-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--green); border: 1.5px solid #000; }
+.hero__legend-dot--hot { background: var(--green-deep); box-shadow: 0 0 0 4px rgba(92, 110, 0, 0.25); }
 @media (min-width: 900px) { .hero__legend { position: absolute; right: 0; top: 0; margin: 0; justify-content: flex-end; } }
 .unit__title { font-size: clamp(28px, 4vw, 44px); font-weight: 900; text-transform: uppercase; line-height: 0.95; letter-spacing: -0.03em; }
 .unit__title::after { content: ""; display: block; width: 56px; height: 6px; background: var(--green); margin-top: 12px; }

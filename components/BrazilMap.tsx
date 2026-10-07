@@ -32,6 +32,9 @@ const THEMES = {
   dark: { fill: "rgba(255,255,255,0.035)", stroke: "rgba(255,255,255,0.26)", fillActive: "rgba(206,255,0,0.12)", strokeActive: "#ceff00", pattern: "/brand/pattern-bora-white.webp", label: "#fff", uf: "rgba(255,255,255,0.35)", dotStroke: "#000", ring: "#ceff00" },
 };
 
+/** Escala sequencial do verde BORA: pedindo → aquecendo → mais pedidos. */
+const TIER_COLORS = ["#ceff00", "#9cc200", "#5c6e00"] as const;
+
 const bboxCache = new Map<string, [number, number, number, number]>();
 function stateBox(uf: string): [number, number, number, number] | null {
   if (bboxCache.has(uf)) return bboxCache.get(uf)!;
@@ -55,11 +58,14 @@ export default function BrazilMap({ cities, focus = null, marker = null, units =
 
   const unitSlugs = useMemo(() => new Set(units.map((u) => u.slug)), [units]);
   const points = useMemo(() => {
-    const max = Math.max(1, ...cities.map((c) => c.leads));
-    // Cidades que já têm BORA aparecem só como unidade, nunca como pedido.
-    return cities.filter((c) => !unitSlugs.has(c.slug)).map((c) => {
+    const asking = cities.filter((c) => !unitSlugs.has(c.slug)); // cidades que já têm BORA aparecem só como unidade
+    const max = Math.max(1, ...asking.map((c) => c.leads));
+    // Concentração relativa ao momento da campanha: 2 = mais pedidos, 1 = aquecendo, 0 = pedindo.
+    const tierOf = (n: number) => (n >= Math.max(5, max * 0.6) ? 2 : n >= Math.max(2, max * 0.25) ? 1 : 0);
+    return asking.map((c) => {
       const [x, y] = project(c.lng, c.lat);
-      return { ...c, x, y, r: 1.6 + Math.sqrt(c.leads / max) * 4.2 };
+      const tier = tierOf(c.leads);
+      return { ...c, x, y, tier, r: 1.6 + Math.sqrt(c.leads / max) * 4.2, color: TIER_COLORS[tier] };
     });
   }, [cities, unitSlugs]);
   const labeled = useMemo(() => [...points].sort((a, b) => b.leads - a.leads).slice(0, labels), [points, labels]);
@@ -145,7 +151,10 @@ export default function BrazilMap({ cities, focus = null, marker = null, units =
             ))
           : null}
         {points.map((p, i) => (
-          <circle key={p.slug} className="map-dot" cx={p.x} cy={p.y} r={p.r * Math.max(z, 0.4)} fill="#ceff00" stroke={T.dotStroke} strokeWidth={0.5 * Math.max(z, 0.4)} style={{ animation: `map-pulse 3.2s ease-in-out ${(i % 7) * 0.4}s infinite`, transformBox: "fill-box", transformOrigin: "center" }} />
+          <g key={p.slug}>
+            {p.tier > 0 ? <circle className="map-halo" cx={p.x} cy={p.y} r={p.r * Math.max(z, 0.4) * (p.tier === 2 ? 2.2 : 1.7)} fill={p.color} opacity={p.tier === 2 ? 0.28 : 0.2} style={{ animation: `map-pulse 3.2s ease-in-out ${(i % 7) * 0.4}s infinite`, transformBox: "fill-box", transformOrigin: "center" }} /> : null}
+            <circle className="map-dot" cx={p.x} cy={p.y} r={p.r * Math.max(z, 0.4)} fill={p.color} stroke={T.dotStroke} strokeWidth={0.5 * Math.max(z, 0.4)} style={{ animation: `map-pulse 3.2s ease-in-out ${(i % 7) * 0.4}s infinite`, transformBox: "fill-box", transformOrigin: "center" }} />
+          </g>
         ))}
         {labeled.map((p) => (
           <text key={`l-${p.slug}`} className="map-label" x={p.x + p.r * Math.max(z, 0.4) + 2.5 * z} y={p.y + 2 * z} fontSize={6 * Math.max(z, 0.35)} fontWeight="700" fill={T.label} letterSpacing="0.6">
@@ -189,7 +198,7 @@ export default function BrazilMap({ cities, focus = null, marker = null, units =
           </g>
         ) : null}
       </g>
-      <style>{`@keyframes map-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}@keyframes map-ring{0%{transform:scale(.4);opacity:.9}100%{transform:scale(2.2);opacity:0}}@media(prefers-reduced-motion:reduce){.map-dot,.map-you circle,.map-pin circle{animation:none!important}}`}</style>
+      <style>{`@keyframes map-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}@keyframes map-ring{0%{transform:scale(.4);opacity:.9}100%{transform:scale(2.2);opacity:0}}@media(prefers-reduced-motion:reduce){.map-dot,.map-halo,.map-you circle,.map-pin circle{animation:none!important}}`}</style>
     </svg>
   );
 }

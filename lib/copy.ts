@@ -28,7 +28,7 @@ export const HERO = {
     you: "VOCÊ",
     hint: "Só com a sua permissão. A posição não sai do seu aparelho.",
   },
-  legend: { units: "A BORA já está aqui", asking: "Cidades pedindo a BORA" },
+  legend: { units: "A BORA já está aqui", asking: "Pedindo a BORA", hot: "Mais pedidos" },
 };
 
 export const FORM = {
