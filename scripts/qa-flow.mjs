@@ -10,6 +10,7 @@ const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const browser = await puppeteer.launch({ executablePath: CHROME, headless: true, args: ["--no-sandbox", "--hide-scrollbars"] });
 const page = await browser.newPage();
 const errors = [];
+page.on("response", (r) => { if (r.status() >= 400) errors.push(`${r.status()} ${r.url()}`); });
 page.on("console", (m) => { if (m.type() === "error") errors.push(m.text().slice(0, 160)); });
 page.on("pageerror", (e) => errors.push("pageerror: " + String(e).slice(0, 160)));
 await page.setViewport({ width: 1440, height: 900 });
