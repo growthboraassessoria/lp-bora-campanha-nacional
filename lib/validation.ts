@@ -10,6 +10,11 @@ export const MESSAGES = {
   sex: "Marca uma opção.",
   birthDate: "Confere a data de nascimento? Use dia/mês/ano.",
   cpf: "Confere o CPF? Os dígitos não batem.",
+  instagram: "Confere o @? Só letras, números, ponto e sublinhado.",
+  bio: "Até 140 caracteres.",
+  photo: "Não deu para usar essa foto. Tenta uma imagem JPG ou PNG menor.",
+  login: "CPF ou data de nascimento não conferem.",
+  tooMany: "Muitas tentativas. Espera uns minutos e tenta de novo.",
   existing: "Você já está no movimento.",
   generic: "Deu ruim por aqui. Tenta de novo em alguns segundos.",
   unavailable: "O cadastro está fechado neste momento. Tenta de novo mais tarde.",
@@ -105,6 +110,35 @@ export function parseBirthDate(v: string): string | null {
   const age = now.getUTCFullYear() - y - (before ? 1 : 0);
   if (age < 10 || age > 110) return null;
   return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+
+export function cleanInstagram(v: string) {
+  return String(v ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/^https?:\/\/(www\.)?instagram\.com\//, "")
+    .replace(/^@/, "")
+    .replace(/[\/?#].*$/, "");
+}
+
+export function isValidInstagram(handle: string) {
+  return /^[a-z0-9._]{1,30}$/.test(handle);
+}
+
+export type ProfileFields = { first_name: string; last_name: string; phone: string; phone2: string; email: string; instagram: string; bio: string };
+export type ProfileErrors = Partial<Record<keyof ProfileFields | "cep" | "photo", string>>;
+
+export function validateProfile(f: ProfileFields): ProfileErrors {
+  const e: ProfileErrors = {};
+  if (!f.first_name || f.first_name.trim().length < 2 || f.first_name.length > 40) e.first_name = MESSAGES.firstName;
+  if (!f.last_name || f.last_name.trim().length < 1 || f.last_name.length > 60) e.last_name = MESSAGES.lastName;
+  if (!isValidPhone(f.phone)) e.phone = MESSAGES.phone;
+  if (cleanPhone(f.phone2) && !isValidPhone(f.phone2)) e.phone2 = MESSAGES.phone;
+  if (!isValidEmail(f.email)) e.email = MESSAGES.email;
+  const ig = cleanInstagram(f.instagram);
+  if (ig && !isValidInstagram(ig)) e.instagram = MESSAGES.instagram;
+  if (f.bio && f.bio.length > 140) e.bio = MESSAGES.bio;
+  return e;
 }
 
 export function validateLead(f: LeadFields): FieldErrors {

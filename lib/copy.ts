@@ -6,6 +6,7 @@ export const SITE = {
   description: "Quer treinar com a BORA, mas ainda não temos uma operação perto de você? Cadastre-se e coloque sua cidade no mapa.",
   studentUrl: "https://boraassessoria.com/",
   instagram: "https://www.instagram.com/bora.assessoria/",
+  areaLabel: "Minha área",
 };
 
 export const HERO = {
@@ -198,6 +199,7 @@ export const THANKS = {
     save: "SALVAR CARTEIRINHA",
     saveHint: "Abre como imagem para guardar no celular e postar.",
   },
+  area: { text: "Sua área fica sempre aberta: foto, dados, perfil público e o desempenho das suas indicações. Para voltar depois, entre com o CPF e a data de nascimento.", cta: "ABRIR MINHA ÁREA" },
   founder: { eyebrow: "QUER COMEÇAR AGORA?", title: "FOUNDING 50", slots: "{n} vagas restantes em {city}.", none: "As 50 vagas de {city} já foram preenchidas.", cta: "CONHECER O PROGRAMA FUNDADOR" },
   qualification: {
     title: ["NOS CONTA MAIS", "SOBRE VOCÊ."],
@@ -224,6 +226,69 @@ export const THANKS = {
   },
 };
 
+export const LOGIN = {
+  eyebrow: "ÁREA DO MEMBRO",
+  title: ["ENTRE COM SEU", "BORA ID."],
+  text: "Use o CPF do cadastro e confirme sua data de nascimento.",
+  cpf: "CPF",
+  birth: "Data de nascimento",
+  cta: "ENTRAR",
+  sending: "ENTRANDO…",
+  noAccount: "Ainda não está no mapa?",
+  signup: "Fazer meu cadastro",
+};
+export const ME = {
+  eyebrow: "MINHA ÁREA",
+  hello: "OLÁ, {name}.",
+  sub: "Seu BORA ID, suas indicações e o seu perfil em {city}.",
+  stats: {
+    title: ["SEU DESEMPENHO", "NA CAMPANHA."],
+    clicks: "CLIQUES NO SEU LINK",
+    signups: "CADASTROS PELO SEU LINK",
+    network: "SUA REDE TOTAL",
+    rank: "POSIÇÃO DE {city}",
+    goal: "META DA CIDADE",
+    empty: "Compartilhe seu link e volte aqui para acompanhar.",
+  },
+  share: { title: ["SEU LINK", "PESSOAL."], text: "Cada pessoa que entra por ele conta para {city} e para você." },
+  profile: { title: ["SEU", "PERFIL."], text: "Foto, dados e o que aparece para quem visita a página de {city}." },
+  card: { title: ["SUA", "CARTEIRINHA."] },
+  logout: "SAIR",
+  back: "VER A CAMPANHA",
+};
+export const PROFILE = {
+  photo: "FOTO",
+  addPhoto: "ADICIONAR FOTO",
+  changePhoto: "TROCAR FOTO",
+  removePhoto: "Remover",
+  photoHint: "JPG ou PNG. A gente recorta em quadrado.",
+  fields: { first_name: "Nome", last_name: "Sobrenome", phone: "WhatsApp", phone2: "Outro telefone (opcional)", email: "E-mail", instagram: "Instagram", bio: "Uma linha sobre você", cep: "CEP" },
+  placeholders: { instagram: "@seu.perfil", bio: "Corro desde 2024, quero fazer minha primeira 10K…", cep: "00000-000" },
+  cepHint: "Mudou de cidade? Troque o CEP e seu ponto no mapa muda junto.",
+  cepCity: "Cidade pelo CEP:",
+  publicTitle: "PERFIL PÚBLICO",
+  publicLabel: "Mostrar meu perfil na página de {city}",
+  publicText: "Quem visitar a página da cidade vê seu nome, a inicial do sobrenome, sua foto, seu Instagram e uma linha sobre você. Serve para quem está chegando se conectar com quem já está.",
+  whatsappLabel: "Permitir contato pelo WhatsApp",
+  whatsappText: "Mostra um botão que abre uma conversa com você. Seu número não aparece escrito.",
+  save: "SALVAR",
+  saving: "SALVANDO…",
+  saved: "Perfil salvo.",
+};
+export const MEMBERS = {
+  eyebrow: "QUEM JÁ ESTÁ AQUI",
+  title: ["MEMBROS EM", "{city}."],
+  text: "Pessoas que ativaram o perfil público. Chame, combine um treino, corram juntas.",
+  one: "1 membro com perfil público",
+  many: "{n} membros com perfil público",
+  empty: "Ainda não há perfis públicos em {city}.",
+  emptyCta: "Entre na sua área e seja a primeira pessoa a aparecer aqui.",
+  enter: "ENTRAR NA MINHA ÁREA",
+  instagram: "INSTAGRAM",
+  whatsapp: "WHATSAPP",
+  message: "Oi, {name}! Vi seu perfil na página da BORA em {city} e quero me conectar.",
+  since: "desde {date}",
+};
 export const CITY_PAGE = {
   eyebrow: "BORA, VAMOS EM FRENTE",
   title: "BORA {city}",

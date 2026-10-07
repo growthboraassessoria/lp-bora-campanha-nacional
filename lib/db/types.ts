@@ -34,6 +34,12 @@ export type Lead = {
   birth_date: string | null;
   cpf: string | null;
   external_ids: Record<string, string>;
+  phone2: string | null;
+  instagram: string | null;
+  bio: string | null;
+  photo_url: string | null;
+  public_profile: boolean;
+  public_whatsapp: boolean;
   city_slug: string;
   city: string;
   state: string;
@@ -48,7 +54,26 @@ export type Lead = {
   created_at: string;
 };
 
-export type NewLeadInput = Omit<Lead, "id" | "created_at" | "bora_number" | "external_ids"> & { ip_hash?: string | null; user_agent?: string | null };
+export type NewLeadInput = Omit<Lead, "id" | "created_at" | "bora_number" | "external_ids" | "phone2" | "instagram" | "bio" | "photo_url" | "public_profile" | "public_whatsapp"> & { ip_hash?: string | null; user_agent?: string | null };
+
+/** O que a pessoa pode mudar na área do membro. */
+export type ProfilePatch = Partial<Pick<Lead, "first_name" | "last_name" | "phone" | "phone2" | "email" | "instagram" | "bio" | "photo_url" | "public_profile" | "public_whatsapp" | "cep" | "city_slug" | "city" | "state">>;
+
+/** O que a página da cidade mostra de quem ativou o perfil público. */
+export type PublicMember = {
+  id: string;
+  bora_number: number;
+  first_name: string;
+  last_initial: string;
+  city: string;
+  city_slug: string;
+  state: string;
+  instagram: string | null;
+  bio: string | null;
+  photo_url: string | null;
+  whatsapp: string | null;
+  created_at: string;
+};
 
 export type RankingRow = {
   rank: number;
@@ -95,6 +120,11 @@ export interface Store {
   createLead(input: NewLeadInput): Promise<{ lead: Lead; created: boolean }>;
   getLeadById(id: string): Promise<Lead | null>;
   getLeadByCode(code: string): Promise<Lead | null>;
+  getLeadByCpf(cpf: string): Promise<Lead | null>;
+  updateLead(id: string, patch: ProfilePatch): Promise<Lead>;
+  touchLogin(id: string): Promise<void>;
+  savePhoto(leadId: string, data: Buffer, contentType: string): Promise<string>;
+  publicMembers(citySlug: string, limit?: number): Promise<PublicMember[]>;
   codeExists(code: string): Promise<boolean>;
   recordReferralClick(input: ReferralClickInput): Promise<void>;
   recordEvent(input: EventInput): Promise<void>;

@@ -21,6 +21,8 @@ export default function Privacidade() {
             <li><strong>Identidade:</strong> CPF, data de nascimento e sexo. O CPF garante um cadastro único por pessoa e gera o seu BORA ID, o número que aparece na sua carteirinha digital; a data de nascimento e o sexo organizam treinos e provas por categoria. Não usamos o CPF para consulta de crédito nem o compartilhamos com terceiros.</li>
             <li><strong>Do CEP:</strong> cidade e estado, para contar sua cidade no ranking. Não guardamos seu endereço completo.</li>
             <li><strong>Opcional:</strong> respostas sobre como você corre, seu objetivo, seu clube e onde trabalha, se você quiser responder.</li>
+            <li><strong>Área do membro:</strong> você entra com CPF e data de nascimento e pode mudar seus dados, adicionar foto, outro telefone e Instagram. A foto fica guardada no nosso armazenamento enquanto o seu perfil existir.</li>
+            <li><strong>Perfil público:</strong> só se você ativar. Mostra na página da sua cidade seu nome, a inicial do sobrenome, foto, Instagram e a linha sobre você; o WhatsApp só aparece como botão, e só se você permitir. Você desativa quando quiser.</li>
             <li><strong>Localização do navegador:</strong> só se você permitir, para mostrar no mapa da página inicial onde você está. A posição fica no seu aparelho; registramos apenas o estado, para estatística.</li>
             <li><strong>Uso da página:</strong> eventos como cadastro iniciado, link compartilhado e cliques, de forma agregada, para melhorar a campanha.</li>
           </ul>

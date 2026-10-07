@@ -63,6 +63,10 @@ export default async function Obrigado() {
             <div data-reveal>
               <BoraIdCard number={lead.bora_number} name={`${lead.first_name} ${lead.last_name}`} city={lead.city} uf={lead.state} since={lead.created_at} code={lead.referral_code} qr={qr} link={link} />
             </div>
+            <p className="block__text" data-reveal>{THANKS.area.text}</p>
+            <div data-reveal>
+              <Link className="btn btn--outline btn-arrow" href="/eu">{THANKS.area.cta}</Link>
+            </div>
           </section>
 
           <section className="block" aria-labelledby="group-title">

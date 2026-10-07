@@ -5,7 +5,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { CITY_GOAL, FOUNDER_SLOTS } from "./types";
-import type { City, EventInput, Lead, NationalStats, NewLeadInput, RankingRow, ReferralClickInput, Store, Testimonial } from "./types";
+import type { City, EventInput, Lead, NationalStats, NewLeadInput, PublicMember, RankingRow, ReferralClickInput, Store, Testimonial } from "./types";
 
 type Data = {
   cities: City[];
@@ -35,6 +35,7 @@ async function read(): Promise<Data> {
   for (const l of [...d.leads].sort((a, b) => a.created_at.localeCompare(b.created_at))) {
     if (!l.bora_number) l.bora_number = next++;
     if (!l.external_ids) l.external_ids = {};
+    l.phone2 ??= null; l.instagram ??= null; l.bio ??= null; l.photo_url ??= null; l.public_profile ??= false; l.public_whatsapp ??= false;
   }
   return d;
 }
@@ -85,7 +86,7 @@ export const localStore: Store = {
       const existing = d.leads.find((l) => l.phone === phone || l.email === email || (cpf && l.cpf === cpf));
       if (existing) return { lead: existing as Lead, created: false };
       const bora_number = Math.max(0, ...d.leads.map((l) => l.bora_number ?? 0)) + 1;
-      const lead: Lead = { ...input, id: randomUUID(), bora_number, external_ids: {}, phone, email, cpf, created_at: new Date().toISOString() };
+      const lead: Lead = { ...input, id: randomUUID(), bora_number, external_ids: {}, phone, email, cpf, phone2: null, instagram: null, bio: null, photo_url: null, public_profile: false, public_whatsapp: false, created_at: new Date().toISOString() };
       d.leads.push(lead);
       return { lead, created: true };
     });
@@ -98,6 +99,33 @@ export const localStore: Store = {
   },
   async codeExists(code) {
     return (await read()).leads.some((l) => l.referral_code === code);
+  },
+  async getLeadByCpf(cpf) {
+    return (await read()).leads.find((l) => l.cpf === cpf) ?? null;
+  },
+  async updateLead(id, patch) {
+    return write((d) => {
+      const l = d.leads.find((x) => x.id === id);
+      if (!l) throw new Error("Cadastro não encontrado.");
+      Object.assign(l, patch);
+      return l as Lead;
+    });
+  },
+  async touchLogin() {},
+  async savePhoto(_leadId, data, contentType) {
+    // Em desenvolvimento a foto fica no próprio arquivo, como data URL (já vem reduzida pelo navegador).
+    return `data:${contentType};base64,${data.toString("base64")}`;
+  },
+  async publicMembers(citySlug, limit = 60) {
+    const d = await read();
+    return d.leads
+      .filter((l) => l.city_slug === citySlug && l.public_profile)
+      .sort((a, b) => a.created_at.localeCompare(b.created_at))
+      .slice(0, limit)
+      .map<PublicMember>((l) => ({
+        id: l.id, bora_number: l.bora_number, first_name: l.first_name, last_initial: (l.last_name ?? "").charAt(0).toUpperCase(), city: l.city, city_slug: l.city_slug, state: l.state,
+        instagram: l.instagram, bio: l.bio, photo_url: l.photo_url, whatsapp: l.public_whatsapp ? l.phone : null, created_at: l.created_at,
+      }));
   },
   async recordReferralClick(input) {
     await write((d) => {

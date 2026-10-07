@@ -7,6 +7,7 @@ import Headline from "@/components/Headline";
 import TrackBar from "@/components/TrackBar";
 import BrazilMap from "@/components/BrazilMap";
 import LeadForm from "@/components/LeadForm";
+import MembersList from "@/components/MembersList";
 import { getStore, CITY_GOAL } from "@/lib/db";
 import { getRanking } from "@/lib/db/cached";
 import { UF_NAMES } from "@/lib/geo";
@@ -26,7 +27,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 export default async function CityPage({ params }: Params) {
   const { slug } = await params;
   const store = getStore();
-  const [city, stat, group, ranking] = await Promise.all([store.getCity(slug), store.cityStat(slug), null, getRanking()]);
+  const [city, stat, group, ranking, members] = await Promise.all([store.getCity(slug), store.cityStat(slug), null, getRanking(), store.publicMembers(slug)]);
   if (!city) notFound();
   const leads = stat?.leads ?? 0;
   const pct = Math.min(100, Math.round((leads / CITY_GOAL) * 100));
@@ -68,7 +69,8 @@ export default async function CityPage({ params }: Params) {
             <p className="lede" data-reveal>{fill(CITY_PAGE.next, { city: city.name })}</p>
             <p className="eyebrow" data-reveal>{fill(CITY_PAGE.founders, { n: stat?.founder_slots_left ?? 50 })}</p>
           </div>
-          <div data-reveal style={{ paddingBottom: "clamp(64px, 10vw, 140px)", maxWidth: 760 }}>
+          <MembersList members={members} city={city.name} />
+          <div className="block" data-reveal style={{ paddingBottom: "clamp(64px, 10vw, 140px)", maxWidth: 760 }}>
             <LeadForm id="cadastro" variant="city" cityHint={`Você está em ${city.name}? Confirme com o seu CEP.`} />
           </div>
         </Reveal>

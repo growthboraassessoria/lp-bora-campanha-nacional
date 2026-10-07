@@ -2,10 +2,11 @@
 // O esquema está em supabase/migrations/0001_init.sql.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { CITY_GOAL, FOUNDER_SLOTS } from "./types";
-import type { City, Lead, NationalStats, RankingRow, Sex, Store, Testimonial } from "./types";
+import type { City, Lead, NationalStats, PublicMember, RankingRow, Sex, Store, Testimonial } from "./types";
 
 type LeadRow = {
-  id: string; bora_number: number; sex: Sex | null; birth_date: string | null; cpf: string | null; external_ids: Record<string, string> | null; first_name: string; last_name: string; email: string; phone: string; cep: string; city_slug: string; city: string; state: string;
+  id: string; bora_number: number; sex: Sex | null; birth_date: string | null; cpf: string | null; external_ids: Record<string, string> | null;
+  phone2: string | null; instagram: string | null; bio: string | null; photo_url: string | null; public_profile: boolean | null; public_whatsapp: boolean | null; first_name: string; last_name: string; email: string; phone: string; cep: string; city_slug: string; city: string; state: string;
   referral_code: string; referred_by: string | null; privacy_consent: boolean; marketing_consent: boolean;
   utm_source: string | null; utm_medium: string | null; utm_campaign: string | null; utm_content: string | null; utm_term: string | null;
   first_touch: Record<string, string> | null; last_touch: Record<string, string> | null; experiment: Record<string, string> | null; created_at: string;
@@ -13,7 +14,8 @@ type LeadRow = {
 
 function toLead(r: LeadRow): Lead {
   return {
-    id: r.id, bora_number: Number(r.bora_number), sex: r.sex ?? null, birth_date: r.birth_date ?? null, cpf: r.cpf ?? null, external_ids: r.external_ids ?? {}, first_name: r.first_name, last_name: r.last_name, email: r.email, phone: r.phone, cep: r.cep, city_slug: r.city_slug, city: r.city, state: r.state,
+    id: r.id, bora_number: Number(r.bora_number), sex: r.sex ?? null, birth_date: r.birth_date ?? null, cpf: r.cpf ?? null, external_ids: r.external_ids ?? {},
+    phone2: r.phone2 ?? null, instagram: r.instagram ?? null, bio: r.bio ?? null, photo_url: r.photo_url ?? null, public_profile: !!r.public_profile, public_whatsapp: !!r.public_whatsapp, first_name: r.first_name, last_name: r.last_name, email: r.email, phone: r.phone, cep: r.cep, city_slug: r.city_slug, city: r.city, state: r.state,
     referral_code: r.referral_code, referred_by: r.referred_by, privacy_consent: r.privacy_consent, marketing_consent: r.marketing_consent,
     utm: { source: r.utm_source, medium: r.utm_medium, campaign: r.utm_campaign, content: r.utm_content, term: r.utm_term },
     first_touch: r.first_touch, last_touch: r.last_touch, experiment: r.experiment, created_at: r.created_at,
@@ -67,6 +69,39 @@ export function makeSupabaseStore(url: string, serviceKey: string): Store {
     async getLeadByCode(code) {
       const { data } = await db.from("leads").select("*").eq("referral_code", code).maybeSingle<LeadRow>();
       return data ? toLead(data) : null;
+    },
+    async getLeadByCpf(cpf) {
+      const { data } = await db.from("leads").select("*").eq("cpf", cpf).maybeSingle<LeadRow>();
+      return data ? toLead(data) : null;
+    },
+    async updateLead(id, patch) {
+      const { data, error } = await db.from("leads").update({ ...patch, updated_at: new Date().toISOString() }).eq("id", id).select("*").single<LeadRow>();
+      fail("leads.update", error);
+      return toLead(data!);
+    },
+    async touchLogin(id) {
+      await db.from("leads").update({ last_login_at: new Date().toISOString() }).eq("id", id);
+    },
+    async savePhoto(leadId, data, contentType) {
+      const ext = contentType === "image/png" ? "png" : contentType === "image/webp" ? "webp" : "jpg";
+      const path = `${leadId}.${ext}`;
+      const { error } = await db.storage.from("avatars").upload(path, data, { contentType, upsert: true, cacheControl: "3600" });
+      fail("avatars.upload", error);
+      return `${db.storage.from("avatars").getPublicUrl(path).data.publicUrl}?v=${Date.now()}`;
+    },
+    async publicMembers(citySlug, limit = 60) {
+      const { data } = await db
+        .from("leads")
+        .select("id,bora_number,first_name,last_name,city,city_slug,state,instagram,bio,photo_url,public_whatsapp,phone,created_at")
+        .eq("city_slug", citySlug)
+        .eq("public_profile", true)
+        .order("created_at", { ascending: true })
+        .limit(limit);
+      type Row = { id: string; bora_number: number; first_name: string; last_name: string; city: string; city_slug: string; state: string; instagram: string | null; bio: string | null; photo_url: string | null; public_whatsapp: boolean; phone: string; created_at: string };
+      return ((data ?? []) as Row[]).map<PublicMember>((r) => ({
+        id: r.id, bora_number: Number(r.bora_number), first_name: r.first_name, last_initial: (r.last_name ?? "").charAt(0).toUpperCase(), city: r.city, city_slug: r.city_slug, state: r.state,
+        instagram: r.instagram, bio: r.bio, photo_url: r.photo_url, whatsapp: r.public_whatsapp ? r.phone : null, created_at: r.created_at,
+      }));
     },
     async codeExists(code) {
       const { count } = await db.from("leads").select("id", { count: "exact", head: true }).eq("referral_code", code);

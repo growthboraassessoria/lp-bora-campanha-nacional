@@ -33,9 +33,13 @@ Cada cadastro recebe um número nacional sequencial (`leads.bora_number`, exibid
 
 As respostas opcionais da página de obrigado ficam em `qualification_answers` (uma por pessoa e pergunta). Para ler o resumo: `node scripts/respostas.mjs [UF]`.
 
+## Área do membro
+
+Quem se cadastrou entra em `/entrar` com CPF e data de nascimento (cookie assinado, o mesmo do pós-cadastro) e cai em `/eu`: carteirinha, desempenho das indicações (cliques, cadastros, rede, posição da cidade), link pessoal e perfil. No perfil dá para trocar foto (recortada em quadrado no navegador e guardada no bucket `avatars` do Supabase), nome, telefones, e-mail, Instagram, uma linha sobre você e o CEP (muda a cidade). Com o perfil público ligado, a pessoa aparece na página da cidade (`/cidade/[slug]`) com nome, inicial do sobrenome, foto, Instagram e, se permitir, um botão de WhatsApp. A entrada por CPF e data tem limite de tentativas por IP e por CPF; é uma proteção simples, pensada para dados de contato, não para dados sensíveis.
+
 ## Rotas
 
-`/` (campanha), `/obrigado` (pós-cadastro, com link de indicação), `/cidade/[uf-slug]`, `/ranking`, `/fundador`, `/r/[codigo]` (link de indicação), `/api/story` (story 1080×1920 da cidade), `/privacidade`, `/termos`.
+`/` (campanha), `/obrigado` (pós-cadastro, com link de indicação), `/cidade/[uf-slug]`, `/ranking`, `/fundador`, `/entrar`, `/eu` (área do membro), `/r/[codigo]` (link de indicação), `/api/story` (story 1080×1920 da cidade), `/privacidade`, `/termos`.
 
 ## QA
 
