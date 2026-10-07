@@ -127,6 +127,13 @@ await page.evaluate(() => document.querySelector("#cadastro")?.scrollIntoView({ 
 await wait(500);
 await page.screenshot({ path: `${out}/9-cidade-com-bora.png` });
 
+// CEP liberado em praça com BORA (teste do Alex): deve confirmar a cidade normalmente
+await page.goto(base + "/", { waitUntil: "networkidle0" });
+await wait(2500);
+await page.type("#cadastro-cep", "72220041", { delay: 30 });
+await page.waitForSelector(".confirm__name", { timeout: 15000 });
+console.log("CEP liberado:", await page.$eval(".confirm__name", (e) => e.textContent), await page.$eval(".confirm__uf", (e) => e.textContent), "· passo:", await page.$(".unit__title") ? "praça com BORA (ERRADO)" : "confirmar cidade");
+
 // a carteirinha no celular
 await page.setViewport({ width: 390, height: 844, deviceScaleFactor: 1, isMobile: true, hasTouch: true });
 await page.goto(`${base}/obrigado`, { waitUntil: "networkidle0" });

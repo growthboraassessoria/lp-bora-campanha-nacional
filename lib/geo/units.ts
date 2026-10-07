@@ -19,3 +19,12 @@ export const UNITS: Unit[] = [
 export function unitFor(citySlug: string, uf: string): Unit | null {
   return UNITS.find((u) => u.slug === citySlug) ?? UNITS.find((u) => u.scope === "state" && u.uf === uf) ?? null;
 }
+
+/** CEPs liberados para cadastro mesmo em praça com BORA. Só o CEP de teste do Alex (Brasília), 07/10/2026. */
+export const UNIT_BYPASS_CEPS = new Set(["72220041"]);
+
+/** A unidade que bloqueia o cadastro para este CEP, ou `null` se a cidade não tem BORA ou o CEP está liberado. */
+export function unitBlocking(citySlug: string, uf: string, cep: string): Unit | null {
+  if (UNIT_BYPASS_CEPS.has(String(cep ?? "").replace(/\D/g, ""))) return null;
+  return unitFor(citySlug, uf);
+}

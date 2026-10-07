@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { FORM, SITE, fill } from "@/lib/copy";
-import { unitFor, type Unit } from "@/lib/geo/units";
+import { unitBlocking, type Unit } from "@/lib/geo/units";
 import { MESSAGES, formatCep, formatCpf, formatDateInput, formatPhone, validateLead, type FieldErrors } from "@/lib/validation";
 import { track } from "@/lib/analytics";
 import { gsap } from "@/lib/gsap";
@@ -101,7 +101,7 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
       setCepStatus("idle");
       onCity?.(resolved);
       track("cep_resolved", { uf: d.uf, city: d.city, approx: d.approx, variant });
-      const u = unitFor(d.slug, d.uf);
+      const u = unitBlocking(d.slug, d.uf, digits);
       if (u) {
         setUnit(u);
         setStep("unit");

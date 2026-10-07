@@ -5,7 +5,7 @@ import { MESSAGES, cleanCpf, cleanPhone, parseBirthDate, titleCase, validateLead
 import type { Sex } from "@/lib/db";
 import { COOKIE_DAYS, LEAD_COOKIE, isValidCode, makeCode, signLeadId, utmFromTouch } from "@/lib/referral";
 import { getAttribution, getRequestMeta } from "@/lib/server/session";
-import { unitFor } from "@/lib/geo/units";
+import { unitBlocking } from "@/lib/geo/units";
 import { SITE, FORM, fill } from "@/lib/copy";
 
 export const runtime = "nodejs";
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
 
   const cep = await resolveCep(fields.cep);
   if (!cep) return NextResponse.json({ ok: false, errors: { cep: MESSAGES.cep } }, { status: 400 });
-  const unit = unitFor(cep.slug, cep.uf);
+  const unit = unitBlocking(cep.slug, cep.uf, fields.cep);
   if (unit) return NextResponse.json({ ok: false, unit: { slug: unit.slug, city: unit.city, uf: unit.uf, url: unit.url ?? SITE.studentUrl }, error: fill(FORM.unit.title, { city: cep.city }) }, { status: 409 });
 
   try {

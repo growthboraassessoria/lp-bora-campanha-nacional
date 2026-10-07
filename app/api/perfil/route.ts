@@ -5,7 +5,7 @@ import type { ProfilePatch } from "@/lib/db";
 import { safeLead } from "@/lib/profile";
 import { getCurrentLead } from "@/lib/server/session";
 import { resolveCep } from "@/lib/cep";
-import { unitFor } from "@/lib/geo/units";
+import { unitBlocking } from "@/lib/geo/units";
 import { SITE, FORM, fill } from "@/lib/copy";
 import { MESSAGES, cleanInstagram, cleanPhone, titleCase, validateProfile } from "@/lib/validation";
 
@@ -45,7 +45,7 @@ export async function PATCH(req: Request) {
     if (!/^\d{8}$/.test(cep)) return NextResponse.json({ ok: false, errors: { cep: MESSAGES.cep } }, { status: 400 });
     const r = await resolveCep(cep);
     if (!r) return NextResponse.json({ ok: false, errors: { cep: MESSAGES.cep } }, { status: 400 });
-    const unit = unitFor(r.slug, r.uf);
+    const unit = unitBlocking(r.slug, r.uf, cep);
     if (unit) return NextResponse.json({ ok: false, unit: { slug: unit.slug, city: unit.city, uf: unit.uf, url: unit.url ?? SITE.studentUrl }, errors: { cep: fill(FORM.unit.title, { city: r.city }) } }, { status: 409 });
     await store.upsertCity({ slug: r.slug, name: r.city, uf: r.uf, ibge: r.ibge, lat: r.lat, lng: r.lng, approx_location: r.approx });
     Object.assign(patch, { cep, city_slug: r.slug, city: r.city, state: r.uf });
