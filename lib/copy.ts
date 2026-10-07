@@ -28,7 +28,7 @@ export const HERO = {
     you: "VOCÊ",
     hint: "Só com a sua permissão. A posição não sai do seu aparelho.",
   },
-  legend: { units: "A BORA já está aqui", asking: "Pedindo a BORA", hot: "Mais pedidos" },
+  legend: { units: "A BORA já está aqui", asking: "Pedindo a BORA", hot: "Mais pedidos", signal: "Mais citadas nas redes" },
 };
 
 export const FORM = {
@@ -98,6 +98,11 @@ export const RANKING = {
   cta: "QUERO A BORA NA MINHA CIDADE",
 };
 
+export const SIGNALS = {
+  eyebrow: "MAIS CITADAS NAS REDES DA BORA",
+  text: "Quando a BORA perguntou nas redes onde as pessoas querem a BORA, essas foram as cidades que mais apareceram. Cadastro é o que coloca a cidade no ranking.",
+  badge: "Mais citada nas redes",
+};
 export const MANIFESTO = {
   lines: ["O BRASIL CORRE.", "O BRASIL TREINA.", "O BRASIL COMEÇA.", "O BRASIL CONTINUA.", "AGORA, O BRASIL PEDE BORA."],
   final: "BORA, VAMOS EM FRENTE.",

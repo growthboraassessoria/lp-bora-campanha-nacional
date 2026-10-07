@@ -5,6 +5,7 @@
 import { useEffect, useId, useMemo, useRef } from "react";
 import { BR_STATES, MAP_SIZE, project } from "@/lib/geo";
 import type { Unit } from "@/lib/geo/units";
+import type { Signal } from "@/lib/geo/signals";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/hooks/useGsap";
 
@@ -18,6 +19,7 @@ type Props = {
   focus?: MapFocus;
   marker?: MapMarker;
   units?: Unit[];
+  signals?: Signal[];
   labels?: number;
   interactive?: boolean;
   className?: string;
@@ -50,7 +52,7 @@ function stateBox(uf: string): [number, number, number, number] | null {
   return box;
 }
 
-export default function BrazilMap({ cities, focus = null, marker = null, units = [], labels = 6, interactive = false, className = "", patternOpacity = 0.06, showUf = false, reveal = false, theme = "light" }: Props) {
+export default function BrazilMap({ cities, focus = null, marker = null, units = [], signals = [], labels = 6, interactive = false, className = "", patternOpacity = 0.06, showUf = false, reveal = false, theme = "light" }: Props) {
   const uid = useId().replace(/:/g, "");
   const svgRef = useRef<SVGSVGElement>(null);
   const groupRef = useRef<SVGGElement>(null);
@@ -172,6 +174,18 @@ export default function BrazilMap({ cities, focus = null, marker = null, units =
                   {(u.label ?? u.city).toUpperCase()}
                 </text>
               ) : null}
+            </g>
+          );
+        })}
+        {signals.map((sg) => {
+          const [x, y] = project(sg.lng, sg.lat);
+          const r = 5.5 * Math.max(z, 0.4);
+          return (
+            <g key={`s-${sg.slug}`} className="map-signal">
+              <circle cx={x} cy={y} r={r} fill="none" stroke="#000" strokeWidth={0.8 * Math.max(z, 0.4)} strokeDasharray={`${1.2 * Math.max(z, 0.4)} ${1 * Math.max(z, 0.4)}`} />
+              {labeled.some((l) => l.slug === sg.slug) || units.some((u) => u.slug === sg.slug) ? null : (
+                <text x={x + r + 2 * z} y={y + 1.8 * z} fontSize={5 * Math.max(z, 0.35)} fontWeight="900" fill={T.label} letterSpacing="0.5">{sg.city.toUpperCase()}</text>
+              )}
             </g>
           );
         })}

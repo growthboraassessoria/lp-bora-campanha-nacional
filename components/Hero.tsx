@@ -9,6 +9,7 @@ import { track } from "@/lib/analytics";
 import { UF_NAMES } from "@/lib/geo";
 import { locate, type Located } from "@/lib/geo/locate";
 import { UNITS } from "@/lib/geo/units";
+import { SOCIAL_SIGNALS } from "@/lib/geo/signals";
 import BrazilMap, { type MapCity, type MapFocus, type MapMarker } from "./BrazilMap";
 import LeadForm, { type ResolvedCity } from "./LeadForm";
 
@@ -123,12 +124,13 @@ export default function Hero({ variant, cities }: Props) {
       </div>
       <div className="hero__map">
         <div aria-hidden="true">
-          <BrazilMap cities={cities} focus={focus} marker={marker} units={UNITS} interactive reveal labels={6} patternOpacity={0} />
+          <BrazilMap cities={cities} focus={focus} marker={marker} units={UNITS} signals={SOCIAL_SIGNALS} interactive reveal labels={6} patternOpacity={0} />
         </div>
         <ul className="hero__legend" aria-label="Legenda do mapa">
           <li><span className="hero__legend-unit" aria-hidden="true" />{HERO.legend.units}</li>
           <li><span className="hero__legend-dot" aria-hidden="true" />{HERO.legend.asking}</li>
           <li><span className="hero__legend-dot hero__legend-dot--hot" aria-hidden="true" />{HERO.legend.hot}</li>
+          <li><span className="hero__legend-signal" aria-hidden="true" />{HERO.legend.signal}</li>
         </ul>
         <button type="button" className={`hero__locate hero__locate--${geo}`} onClick={() => findMe(false)} disabled={geo === "asking"} aria-live="polite" title={HERO.geo.hint}>
           <span className="hero__locate-dot" aria-hidden="true" />

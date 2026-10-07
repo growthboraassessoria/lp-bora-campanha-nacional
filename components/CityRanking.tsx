@@ -2,7 +2,8 @@
 // A corrida entre cidades: placar com pista, líder em destaque, filtro por estado e estado vazio elegante.
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { RANKING } from "@/lib/copy";
+import { RANKING, SIGNALS } from "@/lib/copy";
+import { SOCIAL_SIGNALS } from "@/lib/geo/signals";
 import { UF_NAMES } from "@/lib/geo";
 import { CITY_GOAL, type RankingRow } from "@/lib/db/types";
 import { useGsap } from "@/hooks/useGsap";
@@ -84,6 +85,18 @@ export default function CityRanking({ rows, limit = 10, full = false, showCta = 
         </div>
       ) : null}
 
+      <div className="signals" data-reveal>
+        <p className="eyebrow">{SIGNALS.eyebrow}</p>
+        <ul className="signals__list">
+          {SOCIAL_SIGNALS.map((s) => (
+            <li key={s.slug}>
+              <span className="signals__ring" aria-hidden="true" />
+              <b>{s.city}</b> <span className="muted">{s.uf}</span>
+            </li>
+          ))}
+        </ul>
+        <p className="body">{SIGNALS.text}</p>
+      </div>
       {showCta ? (
         <div className="ranking__cta">
           <div>
