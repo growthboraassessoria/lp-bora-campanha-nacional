@@ -17,7 +17,19 @@ export default function Footer() {
           )}
         </nav>
       </div>
-      <p className="footer__legal">BORA · {new Date().getFullYear()} · Uma assessoria para todos.</p>
+      <div className="footer__bottom">
+        <address className="footer__contact">
+          <span className="footer__contact-label">{FOOTER.contactLabel}</span>
+          {FOOTER.contact.map((c) => (
+            <a key={c.label} href={c.href} target={c.external ? "_blank" : undefined} rel={c.external ? "noopener" : undefined}>
+              {c.label}
+            </a>
+          ))}
+        </address>
+        <p className="footer__legal">
+          {FOOTER.company} · CNPJ {FOOTER.cnpj} · {new Date().getFullYear()} · {FOOTER.tagline}
+        </p>
+      </div>
     </footer>
   );
 }

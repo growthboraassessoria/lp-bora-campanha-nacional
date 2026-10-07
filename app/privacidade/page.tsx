@@ -18,14 +18,17 @@ export default function Privacidade() {
           <h2>O que coletamos</h2>
           <ul>
             <li><strong>Cadastro:</strong> nome, sobrenome, WhatsApp, e-mail e CEP.</li>
+            <li><strong>Identidade:</strong> CPF, data de nascimento e sexo. O CPF garante um cadastro único por pessoa e gera o seu BORA ID, o número que aparece na sua carteirinha digital; a data de nascimento e o sexo organizam treinos e provas por categoria. Não usamos o CPF para consulta de crédito nem o compartilhamos com terceiros.</li>
             <li><strong>Do CEP:</strong> cidade e estado, para contar sua cidade no ranking. Não guardamos seu endereço completo.</li>
             <li><strong>Opcional:</strong> respostas sobre como você corre, seu objetivo, seu clube e onde trabalha, se você quiser responder.</li>
+            <li><strong>Localização do navegador:</strong> só se você permitir, para mostrar no mapa da página inicial onde você está. A posição fica no seu aparelho; registramos apenas o estado, para estatística.</li>
             <li><strong>Uso da página:</strong> eventos como cadastro iniciado, link compartilhado e cliques, de forma agregada, para melhorar a campanha.</li>
           </ul>
 
           <h2>Para que usamos</h2>
           <ul>
             <li>Contar quantas pessoas querem a BORA em cada cidade e estado.</li>
+            <li>Criar o seu BORA ID e a sua carteirinha digital com QR code, que abre o seu link pessoal.</li>
             <li>Colocar você no grupo da BORA do seu estado e falar com você sobre a chegada da BORA, por WhatsApp e e-mail.</li>
             <li>Atribuir indicações ao seu link pessoal.</li>
             <li>Oferecer o programa Aluno Fundador na sua cidade.</li>

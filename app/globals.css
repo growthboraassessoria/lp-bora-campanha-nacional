@@ -440,3 +440,72 @@ a { color: inherit; text-decoration: none; }
   .line__in { transform: none !important; }
   *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
 }
+
+/* ── Campos extras do cadastro ── */
+.field--full { grid-column: 1 / -1; }
+.field__help { font-size: 12px; color: var(--fg-3); }
+.seg { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.seg__opt { flex: 1 1 auto; min-height: 44px; padding: 0 14px; border: 1.5px solid var(--line-strong); border-radius: var(--pill); font-size: 14px; font-weight: 700; color: var(--fg-2); background: #fff; transition: background-color 0.2s, color 0.2s, border-color 0.2s; }
+.seg__opt[aria-checked="true"] { background: #000; color: var(--green); border-color: #000; }
+
+/* ── Carteirinha BORA ID ── */
+.boraid { display: grid; gap: 20px; }
+.boraid__card { position: relative; width: min(100%, 560px); aspect-ratio: 1.586; background: #000; color: #fff; border-radius: 22px; padding: clamp(18px, 3.4vw, 28px); display: grid; grid-template-rows: auto 1fr auto auto; gap: 8px; overflow: hidden; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.28), 0 2px 6px rgba(0, 0, 0, 0.2); transform-style: preserve-3d; will-change: transform; isolation: isolate; }
+.boraid__card::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 6px; background: var(--green); }
+.boraid__card::after { content: ""; position: absolute; inset: auto -35% -55% auto; width: 80%; aspect-ratio: 1; background: url("/brand/pattern-bora-white.webp") center/contain no-repeat; opacity: 0.07; pointer-events: none; }
+.boraid__holo { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: screen; background: linear-gradient(115deg, transparent calc(var(--mx, 50%) - 30%), rgba(206, 255, 0, 0.18) var(--mx, 50%), rgba(255, 255, 255, 0.1) calc(var(--mx, 50%) + 8%), transparent calc(var(--mx, 50%) + 32%)); }
+.boraid__top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.boraid__logo { height: 14px; width: auto; }
+.boraid__label { font-size: 11px; font-weight: 700; letter-spacing: 0.26em; text-transform: uppercase; color: var(--green); }
+.boraid__num { font-size: clamp(56px, 11vw, 96px); font-weight: 900; line-height: 0.85; letter-spacing: -0.05em; color: var(--green); font-variant-numeric: tabular-nums; align-self: center; }
+.boraid__who { display: grid; gap: 3px; min-width: 0; }
+.boraid__name { font-size: clamp(16px, 2.2vw, 22px); font-weight: 900; text-transform: uppercase; letter-spacing: -0.01em; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.boraid__city { font-size: 12px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(255, 255, 255, 0.62); }
+.boraid__foot { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin-top: 6px; }
+.boraid__meta { display: grid; gap: 2px; min-width: 0; }
+.boraid__k { font-size: 9px; font-weight: 700; letter-spacing: 0.24em; text-transform: uppercase; color: rgba(255, 255, 255, 0.5); }
+.boraid__k--gap { margin-top: 8px; }
+.boraid__v { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; font-variant-numeric: tabular-nums; }
+.boraid__qr { width: clamp(72px, 16%, 96px); aspect-ratio: 1; background: #fff; border-radius: 10px; padding: 6px; flex: 0 0 auto; }
+.boraid__qr svg { width: 100%; height: 100%; display: block; }
+.boraid__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px; }
+.boraid__hint { font-size: 13px; }
+@media (max-width: 430px) {
+  .boraid__card { aspect-ratio: auto; min-height: 300px; }
+  .boraid__num { font-size: 60px; }
+}
+
+/* ── Localização no mapa da hero ── */
+.hero__locate { position: absolute; left: 0; bottom: 0; z-index: 2; display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 10px 16px; border-radius: var(--pill); background: #fff; border: 1.5px solid #000; color: #000; font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; text-align: left; box-shadow: var(--shadow); max-width: 100%; transition: background-color 0.3s, color 0.3s; }
+.hero__locate[disabled] { cursor: progress; }
+.hero__locate-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); border: 1.5px solid #000; flex: 0 0 auto; }
+.hero__locate--asking .hero__locate-dot { animation: locate-pulse 1s ease-in-out infinite; }
+.hero__locate--found { background: #000; color: var(--green); }
+.hero__locate--found .hero__locate-dot { border-color: var(--green); }
+.hero__locate--denied, .hero__locate--outside, .hero__locate--unsupported { color: var(--fg-2); border-color: var(--line-strong); }
+@keyframes locate-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0.5; } }
+@media (max-width: 899px) { .hero__locate { position: static; margin-top: 12px; } }
+
+/* ── Rodapé: contato e dados da empresa ── */
+.footer__bottom { display: grid; gap: 16px; }
+.footer__contact { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 24px; font-style: normal; font-size: 14px; font-weight: 700; color: var(--fg); }
+.footer__contact-label { font-size: 11px; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--fg-3); }
+.footer__contact a { text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--line-strong); }
+.footer__contact a:hover { text-decoration-color: #000; }
+.footer__legal { font-variant-numeric: tabular-nums; }
+
+/* ── FAQ em grupos ── */
+.faq__group { margin-top: clamp(32px, 5vw, 56px); }
+.faq__head { display: grid; gap: 8px; margin-bottom: 8px; }
+.faq__head .lede { max-width: 36ch; }
+.faq__group .faq__list { margin-top: 20px; }
+
+/* ── Legenda do mapa e cidades com BORA ── */
+.hero__legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 12px; font-size: 12px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--fg-2); }
+.hero__legend li { display: inline-flex; align-items: center; gap: 8px; }
+.hero__legend-unit { width: 11px; height: 11px; border-radius: 3px; background: #000; border: 1.5px solid var(--green); }
+.hero__legend-dot { width: 11px; height: 11px; border-radius: 50%; background: var(--green); border: 1.5px solid #000; }
+@media (min-width: 900px) { .hero__legend { position: absolute; right: 0; top: 0; margin: 0; justify-content: flex-end; } }
+.unit__title { font-size: clamp(28px, 4vw, 44px); font-weight: 900; text-transform: uppercase; line-height: 0.95; letter-spacing: -0.03em; }
+.unit__title::after { content: ""; display: block; width: 56px; height: 6px; background: var(--green); margin-top: 12px; }
+.unit__text { font-size: 16px; color: var(--fg-2); max-width: 36ch; }

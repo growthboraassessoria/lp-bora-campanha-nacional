@@ -9,6 +9,8 @@ import TrackBar from "@/components/TrackBar";
 import SharePanel from "@/components/SharePanel";
 import QualificationForm from "@/components/QualificationForm";
 import BrazilMap from "@/components/BrazilMap";
+import BoraIdCard from "@/components/BoraIdCard";
+import { qrPath } from "@/lib/qr";
 import { getStore, CITY_GOAL } from "@/lib/db";
 import { getRanking } from "@/lib/db/cached";
 import { getCurrentLead } from "@/lib/server/session";
@@ -28,6 +30,8 @@ export default async function Obrigado() {
   const slotsLeft = stat?.founder_slots_left ?? 50;
   const cities = ranking.map((r) => ({ slug: r.slug, name: r.name, uf: r.uf, lat: r.lat, lng: r.lng, leads: r.leads }));
   const focus = city ? { uf: city.uf, lat: city.lat, lng: city.lng, label: city.name } : { uf: lead.state };
+  const link = absoluteUrl(`/r/${lead.referral_code}`);
+  const qr = qrPath(link);
 
   return (
     <>
@@ -53,6 +57,14 @@ export default async function Obrigado() {
             </div>
           </div>
 
+          <section className="block" aria-labelledby="card-title">
+            <Headline id="card-title" lines={THANKS.card.title} size="s" className="block__title" green={[1]} />
+            <p className="block__text" data-reveal>{THANKS.card.text}</p>
+            <div data-reveal>
+              <BoraIdCard number={lead.bora_number} name={`${lead.first_name} ${lead.last_name}`} city={lead.city} uf={lead.state} since={lead.created_at} code={lead.referral_code} qr={qr} link={link} />
+            </div>
+          </section>
+
           <section className="block" aria-labelledby="group-title">
             <Headline id="group-title" lines={THANKS.group.title.map((l) => fill(l, { uf: lead.state }))} size="s" className="block__title" green={[1]} />
             <p className="block__text" data-reveal>{group ? THANKS.group.text : THANKS.group.soon}</p>
@@ -67,7 +79,7 @@ export default async function Obrigado() {
             <Headline id="share-title" lines={THANKS.share.title} size="s" className="block__title" />
             <p className="block__text" data-reveal>{fill(THANKS.share.text, { city: lead.city })}</p>
             <div data-reveal>
-              <SharePanel code={lead.referral_code} city={lead.city} shortLink={shortLink(lead.referral_code)} fullLink={absoluteUrl(`/r/${lead.referral_code}`)} />
+              <SharePanel code={lead.referral_code} city={lead.city} shortLink={shortLink(lead.referral_code)} fullLink={link} />
             </div>
           </section>
 

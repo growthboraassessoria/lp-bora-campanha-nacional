@@ -4,15 +4,20 @@
 // Tema claro por padrão (página branca); `theme="dark"` para fundos pretos.
 import { useEffect, useId, useMemo, useRef } from "react";
 import { BR_STATES, MAP_SIZE, project } from "@/lib/geo";
+import type { Unit } from "@/lib/geo/units";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/hooks/useGsap";
 
 export type MapCity = { slug: string; name: string; uf: string; lat: number; lng: number; leads: number };
 export type MapFocus = { uf?: string | null; lat?: number | null; lng?: number | null; label?: string | null } | null;
+/** Um ponto marcado no mapa sem mudar a câmera (por exemplo, a posição da pessoa). */
+export type MapMarker = { lat: number; lng: number; label?: string | null } | null;
 
 type Props = {
   cities: MapCity[];
   focus?: MapFocus;
+  marker?: MapMarker;
+  units?: Unit[];
   labels?: number;
   interactive?: boolean;
   className?: string;
@@ -42,21 +47,24 @@ function stateBox(uf: string): [number, number, number, number] | null {
   return box;
 }
 
-export default function BrazilMap({ cities, focus = null, labels = 6, interactive = false, className = "", patternOpacity = 0.06, showUf = false, reveal = false, theme = "light" }: Props) {
+export default function BrazilMap({ cities, focus = null, marker = null, units = [], labels = 6, interactive = false, className = "", patternOpacity = 0.06, showUf = false, reveal = false, theme = "light" }: Props) {
   const uid = useId().replace(/:/g, "");
   const svgRef = useRef<SVGSVGElement>(null);
   const groupRef = useRef<SVGGElement>(null);
   const T = THEMES[theme];
 
+  const unitSlugs = useMemo(() => new Set(units.map((u) => u.slug)), [units]);
   const points = useMemo(() => {
     const max = Math.max(1, ...cities.map((c) => c.leads));
-    return cities.map((c) => {
+    // Cidades que já têm BORA aparecem só como unidade, nunca como pedido.
+    return cities.filter((c) => !unitSlugs.has(c.slug)).map((c) => {
       const [x, y] = project(c.lng, c.lat);
       return { ...c, x, y, r: 1.6 + Math.sqrt(c.leads / max) * 4.2 };
     });
-  }, [cities]);
+  }, [cities, unitSlugs]);
   const labeled = useMemo(() => [...points].sort((a, b) => b.leads - a.leads).slice(0, labels), [points, labels]);
   const you = focus && typeof focus.lat === "number" && typeof focus.lng === "number" ? project(focus.lng!, focus.lat!) : null;
+  const pin = marker ? project(marker.lng, marker.lat) : null;
 
   // Câmera: Brasil inteiro, o estado em foco (com a cidade marcada) ou, sem estado, a vizinhança da cidade.
   const cam = useMemo(() => {
@@ -144,6 +152,31 @@ export default function BrazilMap({ cities, focus = null, labels = 6, interactiv
             {p.name.toUpperCase()}
           </text>
         ))}
+        {units.map((u) => {
+          const [x, y] = project(u.lng, u.lat);
+          const s = 4.6 * Math.max(z, 0.4);
+          return (
+            <g key={u.slug} className="map-unit">
+              <rect x={x - s / 2} y={y - s / 2} width={s} height={s} rx={s * 0.22} fill="#000" stroke="#ceff00" strokeWidth={0.7 * Math.max(z, 0.4)} />
+              {u.showLabel ? (
+                <text x={x + s / 2 + 2 * z} y={y + (1.8 + (u.labelDy ?? 0)) * z} fontSize={5 * Math.max(z, 0.35)} fontWeight="900" fill={T.label} letterSpacing="0.5">
+                  {(u.label ?? u.city).toUpperCase()}
+                </text>
+              ) : null}
+            </g>
+          );
+        })}
+        {pin ? (
+          <g className="map-pin">
+            <circle cx={pin[0]} cy={pin[1]} r={7 * Math.max(z, 0.4)} fill="none" stroke={T.ring} strokeWidth={0.8 * Math.max(z, 0.4)} opacity="0.7" style={{ animation: "map-ring 2s ease-out infinite", transformBox: "fill-box", transformOrigin: "center" }} />
+            <circle cx={pin[0]} cy={pin[1]} r={2.6 * Math.max(z, 0.4)} fill="#ceff00" stroke="#000" strokeWidth={0.7 * Math.max(z, 0.4)} />
+            {marker?.label ? (
+              <text x={pin[0]} y={pin[1] - 6 * Math.max(z, 0.4)} textAnchor="middle" fontSize={4 * Math.max(z, 0.5)} fontWeight="900" fill={T.label} letterSpacing="0.5">
+                {marker.label.toUpperCase()}
+              </text>
+            ) : null}
+          </g>
+        ) : null}
         {you ? (
           <g className="map-you">
             <circle cx={you[0]} cy={you[1]} r={7 * Math.max(z, 0.4)} fill="none" stroke={T.ring} strokeWidth={0.8 * Math.max(z, 0.4)} opacity="0.7" style={{ animation: "map-ring 2s ease-out infinite", transformBox: "fill-box", transformOrigin: "center" }} />
@@ -156,7 +189,7 @@ export default function BrazilMap({ cities, focus = null, labels = 6, interactiv
           </g>
         ) : null}
       </g>
-      <style>{`@keyframes map-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}@keyframes map-ring{0%{transform:scale(.4);opacity:.9}100%{transform:scale(2.2);opacity:0}}@media(prefers-reduced-motion:reduce){.map-dot,.map-you circle{animation:none!important}}`}</style>
+      <style>{`@keyframes map-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.35)}}@keyframes map-ring{0%{transform:scale(.4);opacity:.9}100%{transform:scale(2.2);opacity:0}}@media(prefers-reduced-motion:reduce){.map-dot,.map-you circle,.map-pin circle{animation:none!important}}`}</style>
     </svg>
   );
 }

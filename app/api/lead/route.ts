@@ -1,9 +1,12 @@
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/db";
 import { resolveCep } from "@/lib/cep";
-import { MESSAGES, cleanPhone, titleCase, validateLead } from "@/lib/validation";
+import { MESSAGES, cleanCpf, cleanPhone, parseBirthDate, titleCase, validateLead } from "@/lib/validation";
+import type { Sex } from "@/lib/db";
 import { COOKIE_DAYS, LEAD_COOKIE, isValidCode, makeCode, signLeadId, utmFromTouch } from "@/lib/referral";
 import { getAttribution, getRequestMeta } from "@/lib/server/session";
+import { unitFor } from "@/lib/geo/units";
+import { SITE, FORM, fill } from "@/lib/copy";
 
 export const runtime = "nodejs";
 
@@ -62,6 +65,9 @@ export async function POST(req: Request) {
     phone: cleanPhone(String(body.phone ?? "")),
     email: String(body.email ?? "").trim().toLowerCase(),
     cep: String(body.cep ?? "").replace(/\D/g, ""),
+    sex: String(body.sex ?? "").trim().toUpperCase(),
+    birth_date: String(body.birth_date ?? "").trim(),
+    cpf: cleanCpf(String(body.cpf ?? "")),
     privacy_consent: body.privacy_consent === true,
     marketing_consent: body.marketing_consent !== false,
   };
@@ -70,6 +76,8 @@ export async function POST(req: Request) {
 
   const cep = await resolveCep(fields.cep);
   if (!cep) return NextResponse.json({ ok: false, errors: { cep: MESSAGES.cep } }, { status: 400 });
+  const unit = unitFor(cep.slug, cep.uf);
+  if (unit) return NextResponse.json({ ok: false, unit: { slug: unit.slug, city: unit.city, uf: unit.uf, url: unit.url ?? SITE.studentUrl }, error: fill(FORM.unit.title, { city: cep.city }) }, { status: 409 });
 
   try {
     await store.upsertCity({ slug: cep.slug, name: cep.city, uf: cep.uf, ibge: cep.ibge, lat: cep.lat, lng: cep.lng, approx_location: cep.approx });
@@ -84,6 +92,9 @@ export async function POST(req: Request) {
 
     const { lead, created } = await store.createLead({
       ...fields,
+      sex: fields.sex as Sex,
+      birth_date: parseBirthDate(fields.birth_date),
+      cpf: fields.cpf,
       city_slug: cep.slug,
       city: cep.city,
       state: cep.uf,
@@ -110,7 +121,7 @@ export async function POST(req: Request) {
       created,
       redirect: "/obrigado",
       message: created ? null : MESSAGES.existing,
-      lead: { first_name: lead.first_name, city: lead.city, state: lead.state, city_slug: lead.city_slug, code: lead.referral_code },
+      lead: { first_name: lead.first_name, city: lead.city, state: lead.state, city_slug: lead.city_slug, code: lead.referral_code, bora_number: lead.bora_number },
     });
     res.cookies.set(LEAD_COOKIE, signLeadId(lead.id), { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: COOKIE_DAYS * 24 * 60 * 60 });
     return res;

@@ -16,6 +16,18 @@ export const HERO = {
   },
   sub: "Quer treinar com a BORA, mas ainda não temos uma operação perto de você?",
   text: "Estamos mapeando as próximas cidades da BORA no Brasil. Cadastre-se, chame seus amigos e ajude sua cidade a entrar no mapa.",
+  geo: {
+    idle: "ME MOSTRAR NO MAPA",
+    asking: "LOCALIZANDO…",
+    found: "VOCÊ ESTÁ EM {uf}",
+    foundNear: "VOCÊ ESTÁ PERTO DE {city}",
+    outside: "NÃO ACHAMOS VOCÊ NO MAPA",
+    denied: "LOCALIZAÇÃO BLOQUEADA NO NAVEGADOR",
+    unsupported: "SEU NAVEGADOR NÃO INFORMA LOCALIZAÇÃO",
+    you: "VOCÊ",
+    hint: "Só com a sua permissão. A posição não sai do seu aparelho.",
+  },
+  legend: { units: "A BORA já está aqui", asking: "Cidades pedindo a BORA" },
 };
 
 export const FORM = {
@@ -29,13 +41,27 @@ export const FORM = {
   confirmFix: "Corrigir cidade",
   yourCity: "Sua cidade:",
   approxNote: "Localização aproximada no mapa.",
-  fields: { first_name: "Nome", last_name: "Sobrenome", phone: "WhatsApp", email: "E-mail" },
+  fields: { first_name: "Nome", last_name: "Sobrenome", phone: "WhatsApp", email: "E-mail", cpf: "CPF", birth_date: "Data de nascimento", sex: "Sexo" },
+  placeholders: { cpf: "000.000.000-00", birth_date: "DD/MM/AAAA" },
+  cpfHelp: "Garante um cadastro único por pessoa. É ele que gera o seu BORA ID.",
+  sexOptions: [
+    { value: "F", label: "Feminino" },
+    { value: "M", label: "Masculino" },
+    { value: "N", label: "Prefiro não dizer" },
+  ],
   consent: "Aceito o aviso de privacidade e quero receber contato da BORA por WhatsApp e e-mail.",
   cta: "QUERO A BORA NA MINHA CIDADE",
   sending: "COLOCANDO NO MAPA…",
   micro: "Leva 30 segundos. Sem cobrança.",
   existing: "Você já está no movimento. Vamos te levar para o seu link.",
   placedLine: "Você acabou de colocar {city} no mapa.",
+  unit: {
+    eyebrow: "BOA NOTÍCIA",
+    title: "A BORA JÁ ESTÁ EM {city}.",
+    text: "Você não precisa esperar a campanha: já dá para treinar com a gente aí.",
+    cta: "CONHECER A BORA {city}",
+    fix: "Corrigir CEP",
+  },
 };
 
 export const PROOF = {
@@ -81,7 +107,7 @@ export const FOUNDING = {
   title: ["VOCÊ NÃO PRECISA", "ESPERAR A BORA CHEGAR."],
   text: "Os primeiros 50 atletas de cada cidade que começarem a treinar com a BORA ganham o status permanente de Aluno Fundador.",
   credential: { label: "ALUNO FUNDADOR", prefix: "BORA" },
-  benefits: ["Número de Fundador", "Condição especial", "Prioridade no primeiro treino aberto", "Prioridade na operação presencial"],
+  benefits: ["Número de Fundador", "70% de desconto no plano mensal", "Prioridade no primeiro treino aberto", "Prioridade na operação presencial"],
   quote: ["VOCÊ NÃO ENTROU", "DEPOIS QUE A BORA CHEGOU.", "VOCÊ AJUDOU", "A BORA A CHEGAR."],
   cta: "QUERO SER FUNDADOR",
   note: "Vagas limitadas a 50 por cidade. As condições estão na página do programa.",
@@ -104,8 +130,22 @@ export const FAQ = [
   { q: "Quando a BORA chega na minha cidade?", a: "Quando a cidade mostra que está pronta. A meta inicial é 500 pessoas; aí fazemos o primeiro treino aberto e abrimos as vagas de Aluno Fundador." },
   { q: "E se eu quiser começar a treinar agora?", a: "Pode. A BORA Online já existe, e os primeiros 50 de cada cidade entram como Alunos Fundadores." },
   { q: "Já tenho assessoria ou corro em um clube. Posso entrar?", a: "Pode. Quanto mais corredores na cidade, melhor. Pergunte ao seu clube se ele quer correr junto com a BORA." },
-  { q: "O que vocês fazem com meus dados?", a: "Usamos para contar sua cidade, te colocar no grupo e falar com você sobre a chegada da BORA. Nada de venda de dados. Os detalhes estão no aviso de privacidade." },
+  { q: "O que vocês fazem com meus dados?", a: "Usamos para contar sua cidade, criar o seu BORA ID, te colocar no grupo e falar com você sobre a chegada da BORA. O CPF serve só para garantir um cadastro único por pessoa. Nada de venda de dados. Os detalhes estão no aviso de privacidade." },
   { q: "Como funciona o link de indicação?", a: "Cada pessoa que se cadastra pelo seu link conta para a sua cidade e para o seu nível de embaixador." },
+];
+export const FAQ_GROUPS = [
+  { eyebrow: "SOBRE A CAMPANHA", lede: null as string | null, items: FAQ },
+  {
+    eyebrow: "SOBRE TREINAR COM A BORA",
+    lede: "O que perguntam antes de começar." as string | null,
+    items: [
+      { q: "Como funciona?", a: "Primeiro a gente quer te conhecer: sua rotina, o seu nível de hoje e aonde você quer chegar. Com isso o seu treinador monta um planejamento individual, que fica no app Runy. Por lá você vê os treinos, registra como foi cada um e recebe o retorno do treinador, que ajusta o plano conforme você evolui." },
+      { q: "Como funciona o ponto de apoio?", a: "Nas cidades que têm ponto de apoio, você treina presencial nos dias, horários e locais do seu núcleo, com a equipe BORA e toda a estrutura no lugar. E se você viajar para outra cidade que tem ponto de apoio, pode treinar lá também, mesmo sem ser daquele núcleo." },
+      { q: "Dá pra fazer online?", a: "Dá. Você treina com a BORA de qualquer lugar, mesmo que não exista ponto de apoio na sua cidade. Os treinos ficam no app Runy, e o treinador acompanha o seu desempenho, manda orientação e faz os ajustes à distância." },
+      { q: "Como falo com o professor?", a: "Direto pelo app Runy. É lá que você tira dúvida, conta como foi o treino e recebe a orientação do treinador sobre o que você já fez." },
+      { q: "Onde vejo o treino?", a: "No app Runy, organizados do jeito que o seu planejamento pede. Cada treino vem com a explicação do que fazer, e o app conecta com Garmin, Polar e outros aparelhos, o que facilita registrar e acompanhar a sua evolução." },
+    ],
+  },
 ];
 
 export const FINAL = {
@@ -120,6 +160,15 @@ export const FOOTER = {
     { label: "Termos", href: "/termos" },
   ],
   letz: "LETZ BORAAA!!",
+  company: "Bora Assessoria LTDA",
+  cnpj: "54.366.041/0001-25",
+  tagline: "Uma assessoria para todos.",
+  contactLabel: "CONTATO",
+  contact: [
+    { label: "comercial@boraassessoria.com", href: "mailto:comercial@boraassessoria.com" },
+    { label: "WhatsApp (31) 98413-3066", href: "https://wa.me/5531984133066", external: true },
+    { label: "@bora.assessoria", href: SITE.instagram, external: true },
+  ],
 };
 
 export const THANKS = {
@@ -139,6 +188,15 @@ export const THANKS = {
     copied: "LINK COPIADO",
     story: "CRIAR STORY",
     message: "Quero a BORA em {city}. Entra comigo que a gente coloca a cidade no mapa: {link}",
+  },
+  card: {
+    title: ["SUA CARTEIRINHA", "BORA."],
+    text: "Seu BORA ID é o seu número no movimento, do #0001 em diante. O QR code abre o seu link pessoal e identifica você nos treinos abertos.",
+    label: "BORA ID",
+    since: "MEMBRO DESDE",
+    campaign: "BORA, VAMOS EM FRENTE",
+    save: "SALVAR CARTEIRINHA",
+    saveHint: "Abre como imagem para guardar no celular e postar.",
   },
   founder: { eyebrow: "QUER COMEÇAR AGORA?", title: "FOUNDING 50", slots: "{n} vagas restantes em {city}.", none: "As 50 vagas de {city} já foram preenchidas.", cta: "CONHECER O PROGRAMA FUNDADOR" },
   qualification: {
@@ -186,11 +244,11 @@ export const FOUNDER_PAGE = {
   eyebrow: "FOUNDING 50",
   title: ["ALUNO FUNDADOR", "BORA {city}."],
   what: "Os primeiros 50 de cada cidade que começam a treinar com a BORA Online.",
-  gains: ["Número de Fundador", "Badge permanente", "Condição especial", "Prioridade no primeiro treino aberto", "Prioridade na operação presencial", "Grupo exclusivo"],
-  conditionTitle: "CONDIÇÃO DE LANÇAMENTO",
-  condition: ["R$ 49 no 1º mês.", "R$ 99 no 2º e no 3º.", "Plano normal da BORA a partir do 4º mês."],
-  conditionNote: "Preço de lançamento para os Fundadores. Depois do 3º mês, vale o plano normal da BORA.",
-  includes: ["Treinador", "Planejamento individual", "App", "Apoio em provas"],
+  gains: ["Número de Fundador", "Badge permanente", "70% de desconto no plano mensal", "Prioridade no primeiro treino aberto", "Prioridade na operação presencial", "Grupo exclusivo"],
+  conditionTitle: "CONDIÇÃO DE FUNDADOR",
+  condition: ["70% de desconto no plano mensal.", "R$ 84 por mês, em vez de R$ 280.", "Mês a mês no cartão."],
+  conditionNote: "O plano mensal da BORA custa R$ 280. O Aluno Fundador paga R$ 84 por mês.",
+  includes: ["Treino individual", "App Runy", "Seu treinador junto", "Estrutura da BORA no dia da prova"],
   cta: "COMEÇAR AGORA",
   soon: "O checkout abre junto com as primeiras cidades. Você recebe o aviso no grupo do seu estado.",
   rules: "Regras de cancelamento, renovação e o que acontece quando a BORA abrir a operação presencial na sua cidade ficam na página de termos.",

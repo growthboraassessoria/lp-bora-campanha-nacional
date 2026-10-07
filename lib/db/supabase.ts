@@ -2,10 +2,10 @@
 // O esquema está em supabase/migrations/0001_init.sql.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { CITY_GOAL, FOUNDER_SLOTS } from "./types";
-import type { City, Lead, NationalStats, RankingRow, Store, Testimonial } from "./types";
+import type { City, Lead, NationalStats, RankingRow, Sex, Store, Testimonial } from "./types";
 
 type LeadRow = {
-  id: string; first_name: string; last_name: string; email: string; phone: string; cep: string; city_slug: string; city: string; state: string;
+  id: string; bora_number: number; sex: Sex | null; birth_date: string | null; cpf: string | null; external_ids: Record<string, string> | null; first_name: string; last_name: string; email: string; phone: string; cep: string; city_slug: string; city: string; state: string;
   referral_code: string; referred_by: string | null; privacy_consent: boolean; marketing_consent: boolean;
   utm_source: string | null; utm_medium: string | null; utm_campaign: string | null; utm_content: string | null; utm_term: string | null;
   first_touch: Record<string, string> | null; last_touch: Record<string, string> | null; experiment: Record<string, string> | null; created_at: string;
@@ -13,7 +13,7 @@ type LeadRow = {
 
 function toLead(r: LeadRow): Lead {
   return {
-    id: r.id, first_name: r.first_name, last_name: r.last_name, email: r.email, phone: r.phone, cep: r.cep, city_slug: r.city_slug, city: r.city, state: r.state,
+    id: r.id, bora_number: Number(r.bora_number), sex: r.sex ?? null, birth_date: r.birth_date ?? null, cpf: r.cpf ?? null, external_ids: r.external_ids ?? {}, first_name: r.first_name, last_name: r.last_name, email: r.email, phone: r.phone, cep: r.cep, city_slug: r.city_slug, city: r.city, state: r.state,
     referral_code: r.referral_code, referred_by: r.referred_by, privacy_consent: r.privacy_consent, marketing_consent: r.marketing_consent,
     utm: { source: r.utm_source, medium: r.utm_medium, campaign: r.utm_campaign, content: r.utm_content, term: r.utm_term },
     first_touch: r.first_touch, last_touch: r.last_touch, experiment: r.experiment, created_at: r.created_at,
@@ -46,10 +46,12 @@ export function makeSupabaseStore(url: string, serviceKey: string): Store {
     async createLead(input) {
       const phone = input.phone.replace(/\D/g, "");
       const email = input.email.trim().toLowerCase();
-      const { data: existing } = await db.from("leads").select("*").or(`phone.eq.${phone},email.eq.${email}`).limit(1).maybeSingle<LeadRow>();
+      const cpf = input.cpf ? input.cpf.replace(/\D/g, "") : null;
+      const same = [`phone.eq.${phone}`, `email.eq.${email}`, ...(cpf ? [`cpf.eq.${cpf}`] : [])].join(",");
+      const { data: existing } = await db.from("leads").select("*").or(same).limit(1).maybeSingle<LeadRow>();
       if (existing) return { lead: toLead(existing), created: false };
       const row = {
-        first_name: input.first_name, last_name: input.last_name, email, phone, cep: input.cep, city_slug: input.city_slug, city: input.city, state: input.state,
+        first_name: input.first_name, last_name: input.last_name, email, phone, cep: input.cep, sex: input.sex ?? null, birth_date: input.birth_date ?? null, cpf, city_slug: input.city_slug, city: input.city, state: input.state,
         referral_code: input.referral_code, referred_by: input.referred_by, privacy_consent: input.privacy_consent, marketing_consent: input.marketing_consent,
         utm_source: input.utm.source ?? null, utm_medium: input.utm.medium ?? null, utm_campaign: input.utm.campaign ?? null, utm_content: input.utm.content ?? null, utm_term: input.utm.term ?? null,
         first_touch: input.first_touch, last_touch: input.last_touch, experiment: input.experiment, ip_hash: input.ip_hash ?? null, user_agent: input.user_agent ?? null,
@@ -111,8 +113,8 @@ export function makeSupabaseStore(url: string, serviceKey: string): Store {
     async saveQualification(leadId, answers) {
       const rows = Object.entries(answers).filter(([, a]) => a).map(([question, answer]) => ({ lead_id: leadId, question, answer }));
       if (!rows.length) return;
-      const { error } = await db.from("qualification_answers").insert(rows);
-      fail("qualification_answers.insert", error);
+      const { error } = await db.from("qualification_answers").upsert(rows, { onConflict: "lead_id,question" });
+      fail("qualification_answers.upsert", error);
     },
     async referralStats(code) {
       const [{ count: clicks }, { data: net }] = await Promise.all([

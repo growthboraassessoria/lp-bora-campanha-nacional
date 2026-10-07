@@ -1,23 +1,12 @@
-// Story dinâmico para o Instagram (1080×1920): "[CIDADE] ESTÁ EM #N · QUERO A BORA AQUI."
+// Story dinâmico para o Instagram (1080×1920): "[CIDADE] ESTÁ EM #N · QUERO A BORA AQUI.", com o BORA ID e o QR do link.
 import { ImageResponse } from "next/og";
-import { promises as fs } from "node:fs";
-import path from "node:path";
 import { getStore } from "@/lib/db";
-import { isValidCode, shortLink } from "@/lib/referral";
+import { isValidCode, shortLink, absoluteUrl } from "@/lib/referral";
+import { altoneFonts } from "@/lib/server/og-fonts";
+import { qrPath } from "@/lib/qr";
+import { formatBoraId } from "@/lib/boraid";
 
 export const runtime = "nodejs";
-
-const toArrayBuffer = (b: Buffer) => b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer;
-let heavy: ArrayBuffer | null = null;
-let medium: ArrayBuffer | null = null;
-async function fonts() {
-  if (!heavy) heavy = toArrayBuffer(await fs.readFile(path.join(process.cwd(), "app/fonts/Altone-Heavy.ttf")));
-  if (!medium) medium = toArrayBuffer(await fs.readFile(path.join(process.cwd(), "app/fonts/Altone-Medium.ttf")));
-  return [
-    { name: "Altone", data: heavy, weight: 900 as const, style: "normal" as const },
-    { name: "Altone", data: medium, weight: 500 as const, style: "normal" as const },
-  ];
-}
 
 export async function GET(req: Request) {
   const code = (new URL(req.url).searchParams.get("c") ?? "").toUpperCase();
@@ -28,6 +17,7 @@ export async function GET(req: Request) {
   const rank = stat?.rank ?? null;
   const city = lead.city.toUpperCase();
   const link = shortLink(lead.referral_code);
+  const qr = qrPath(absoluteUrl(`/r/${lead.referral_code}`));
 
   return new ImageResponse(
     (
@@ -38,21 +28,33 @@ export async function GET(req: Request) {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div style={{ fontSize: 40, fontWeight: 500, letterSpacing: 6, color: "rgba(255,255,255,.7)" }}>{rank ? "ESTÁ EM" : "ENTROU NO MAPA"}</div>
-          {rank ? <div style={{ fontSize: 360, fontWeight: 900, lineHeight: 0.85, color: "#ceff00", letterSpacing: -12 }}>{`#${rank}`}</div> : null}
-          <div style={{ fontSize: city.length > 12 ? 104 : 140, fontWeight: 900, lineHeight: 0.9, letterSpacing: -4, marginTop: 24 }}>{city}</div>
-          <div style={{ fontSize: 64, fontWeight: 900, lineHeight: 1, marginTop: 40 }}>QUERO A BORA AQUI.</div>
+          {rank ? <div style={{ fontSize: 320, fontWeight: 900, lineHeight: 0.85, color: "#ceff00", letterSpacing: -12 }}>{`#${rank}`}</div> : null}
+          <div style={{ fontSize: city.length > 12 ? 96 : 128, fontWeight: 900, lineHeight: 0.9, letterSpacing: -4, marginTop: 24 }}>{city}</div>
+          <div style={{ fontSize: 60, fontWeight: 900, lineHeight: 1, marginTop: 32 }}>QUERO A BORA AQUI.</div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <span style={{ fontSize: 24, fontWeight: 500, letterSpacing: 6, color: "rgba(255,255,255,.6)" }}>MEU BORA ID</span>
+              <span style={{ fontSize: 88, fontWeight: 900, lineHeight: 1, letterSpacing: -3, color: "#ceff00" }}>{formatBoraId(lead.bora_number)}</span>
+              <span style={{ fontSize: 28, fontWeight: 500, letterSpacing: 2, color: "#ceff00", marginTop: 18 }}>{link}</span>
+            </div>
+            <div style={{ display: "flex", background: "#fff", borderRadius: 22, padding: 14, width: 200, height: 200 }}>
+              <svg width={172} height={172} viewBox={`0 0 ${qr.size} ${qr.size}`}>
+                <path d={qr.path} fill="#000" />
+              </svg>
+            </div>
+          </div>
           <div style={{ height: 6, width: "100%", background: "rgba(255,255,255,.15)", display: "flex" }}>
             <div style={{ height: 6, width: `${Math.min(100, stat?.pct ?? 0)}%`, background: "#ceff00" }} />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 30, fontWeight: 500, letterSpacing: 2 }}>
             <span>{stat ? `${stat.leads} PESSOAS · META 500` : "META 500"}</span>
-            <span style={{ color: "#ceff00" }}>{link}</span>
+            <span style={{ color: "rgba(255,255,255,.6)" }}>APONTE A CÂMERA PARA ENTRAR</span>
           </div>
         </div>
       </div>
     ),
-    { width: 1080, height: 1920, fonts: await fonts(), headers: { "Cache-Control": "public, max-age=300" } },
+    { width: 1080, height: 1920, fonts: await altoneFonts(), headers: { "Cache-Control": "public, max-age=300" } },
   );
 }

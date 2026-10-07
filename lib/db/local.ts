@@ -24,11 +24,19 @@ const empty = (): Data => ({ cities: [], leads: [], clicks: [], events: [], foun
 let queue: Promise<unknown> = Promise.resolve();
 
 async function read(): Promise<Data> {
+  let d: Data;
   try {
-    return { ...empty(), ...JSON.parse(await fs.readFile(FILE, "utf8")) };
+    d = { ...empty(), ...JSON.parse(await fs.readFile(FILE, "utf8")) };
   } catch {
     return empty();
   }
+  // Cadastros antigos (antes do BORA ID) recebem número pela ordem de chegada.
+  let next = Math.max(0, ...d.leads.map((l) => l.bora_number ?? 0)) + 1;
+  for (const l of [...d.leads].sort((a, b) => a.created_at.localeCompare(b.created_at))) {
+    if (!l.bora_number) l.bora_number = next++;
+    if (!l.external_ids) l.external_ids = {};
+  }
+  return d;
 }
 
 function write<T>(mutate: (d: Data) => T | Promise<T>): Promise<T> {
@@ -73,9 +81,11 @@ export const localStore: Store = {
     const phone = input.phone.replace(/\D/g, "");
     const email = input.email.trim().toLowerCase();
     return write((d) => {
-      const existing = d.leads.find((l) => l.phone === phone || l.email === email);
+      const cpf = input.cpf ? input.cpf.replace(/\D/g, "") : null;
+      const existing = d.leads.find((l) => l.phone === phone || l.email === email || (cpf && l.cpf === cpf));
       if (existing) return { lead: existing as Lead, created: false };
-      const lead: Lead = { ...input, id: randomUUID(), phone, email, created_at: new Date().toISOString() };
+      const bora_number = Math.max(0, ...d.leads.map((l) => l.bora_number ?? 0)) + 1;
+      const lead: Lead = { ...input, id: randomUUID(), bora_number, external_ids: {}, phone, email, cpf, created_at: new Date().toISOString() };
       d.leads.push(lead);
       return { lead, created: true };
     });
@@ -120,7 +130,11 @@ export const localStore: Store = {
   async saveQualification(leadId, answers) {
     await write((d) => {
       const now = new Date().toISOString();
-      for (const [question, answer] of Object.entries(answers)) if (answer) d.qualification.push({ lead_id: leadId, question, answer, created_at: now });
+      for (const [question, answer] of Object.entries(answers)) {
+        if (!answer) continue;
+        d.qualification = d.qualification.filter((q) => !(q.lead_id === leadId && q.question === question));
+        d.qualification.push({ lead_id: leadId, question, answer, created_at: now });
+      }
     });
   },
   async referralStats(code) {

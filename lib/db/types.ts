@@ -18,13 +18,22 @@ export type City = {
   approx_location: boolean;
 };
 
+/** Sexo informado no cadastro: F, M ou N (prefiro não dizer). */
+export type Sex = "F" | "M" | "N";
+
 export type Lead = {
   id: string;
+  /** BORA ID: número nacional sequencial, a partir de 1. */
+  bora_number: number;
   first_name: string;
   last_name: string;
   email: string;
   phone: string;
   cep: string;
+  sex: Sex | null;
+  birth_date: string | null;
+  cpf: string | null;
+  external_ids: Record<string, string>;
   city_slug: string;
   city: string;
   state: string;
@@ -39,7 +48,7 @@ export type Lead = {
   created_at: string;
 };
 
-export type NewLeadInput = Omit<Lead, "id" | "created_at"> & { ip_hash?: string | null; user_agent?: string | null };
+export type NewLeadInput = Omit<Lead, "id" | "created_at" | "bora_number" | "external_ids"> & { ip_hash?: string | null; user_agent?: string | null };
 
 export type RankingRow = {
   rank: number;

@@ -2,14 +2,15 @@
 // O painel de cadastro: CEP primeiro, cidade confirmada em letras grandes, depois os dados. Cadastro em ~30 segundos.
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { FORM, fill } from "@/lib/copy";
-import { MESSAGES, formatCep, formatPhone, validateLead, type FieldErrors } from "@/lib/validation";
+import { FORM, SITE, fill } from "@/lib/copy";
+import { unitFor, type Unit } from "@/lib/geo/units";
+import { MESSAGES, formatCep, formatCpf, formatDateInput, formatPhone, validateLead, type FieldErrors } from "@/lib/validation";
 import { track } from "@/lib/analytics";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/hooks/useGsap";
 
 export type ResolvedCity = { city: string; uf: string; slug: string; lat: number; lng: number; approx: boolean };
-type Step = "cep" | "confirm" | "details";
+type Step = "cep" | "confirm" | "details" | "unit";
 
 type Props = {
   id?: string;
@@ -27,12 +28,24 @@ declare global {
 
 const TURNSTILE = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
+type TextKey = "first_name" | "last_name" | "phone" | "email" | "cpf" | "birth_date";
+type TextField = { k: TextKey; type: "text" | "tel" | "email"; mode: "text" | "tel" | "email" | "numeric"; ac: string; placeholder?: string; max?: number; help?: string };
+const TEXT_FIELDS: TextField[] = [
+  { k: "first_name", type: "text", mode: "text", ac: "given-name" },
+  { k: "last_name", type: "text", mode: "text", ac: "family-name" },
+  { k: "phone", type: "tel", mode: "tel", ac: "tel-national" },
+  { k: "email", type: "email", mode: "email", ac: "email" },
+  { k: "cpf", type: "text", mode: "numeric", ac: "off", placeholder: FORM.placeholders.cpf, max: 14, help: FORM.cpfHelp },
+  { k: "birth_date", type: "text", mode: "numeric", ac: "bday", placeholder: FORM.placeholders.birth_date, max: 10 },
+];
+
 export default function LeadForm({ id = "cadastro", variant = "hero", onCity, onPlaced, cityHint }: Props) {
   const [step, setStep] = useState<Step>("cep");
   const [cep, setCep] = useState("");
   const [cepStatus, setCepStatus] = useState<"idle" | "loading" | "error">("idle");
   const [city, setCity] = useState<ResolvedCity | null>(null);
-  const [fields, setFields] = useState({ first_name: "", last_name: "", phone: "", email: "" });
+  const [unit, setUnit] = useState<Unit | null>(null);
+  const [fields, setFields] = useState({ first_name: "", last_name: "", phone: "", email: "", cpf: "", birth_date: "", sex: "" });
   const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [sending, setSending] = useState(false);
@@ -86,9 +99,17 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
       const resolved: ResolvedCity = { city: d.city, uf: d.uf, slug: d.slug, lat: d.lat, lng: d.lng, approx: d.approx };
       setCity(resolved);
       setCepStatus("idle");
-      setStep("confirm");
       onCity?.(resolved);
       track("cep_resolved", { uf: d.uf, city: d.city, approx: d.approx, variant });
+      const u = unitFor(d.slug, d.uf);
+      if (u) {
+        setUnit(u);
+        setStep("unit");
+        track("unit_match", { uf: d.uf, city: d.city, unit: u.slug, variant });
+      } else {
+        setUnit(null);
+        setStep("confirm");
+      }
     } catch {
       setCepStatus("error");
       setErrors((e) => ({ ...e, cep: MESSAGES.cep }));
@@ -116,6 +137,7 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
   function fixCity() {
     setStep("cep");
     setCity(null);
+    setUnit(null);
     setCep("");
     lastCep.current = "";
     onCity?.(null);
@@ -129,6 +151,9 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
     const payload = {
       ...fields,
       cep: cep.replace(/\D/g, ""),
+      cpf: fields.cpf.replace(/\D/g, ""),
+      birth_date: fields.birth_date,
+      sex: fields.sex,
       privacy_consent: consent,
       marketing_consent: consent,
       website: (form.elements.namedItem("website") as HTMLInputElement | null)?.value ?? "",
@@ -159,7 +184,8 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
     }
   }
 
-  const set = (k: keyof typeof fields) => (v: string) => setFields((f) => ({ ...f, [k]: k === "phone" ? formatPhone(v) : v }));
+  const set = (k: keyof typeof fields) => (v: string) =>
+    setFields((f) => ({ ...f, [k]: k === "phone" ? formatPhone(v) : k === "cpf" ? formatCpf(v) : k === "birth_date" ? formatDateInput(v) : v }));
 
   return (
     <form id={id} className="panel" onSubmit={submit} noValidate aria-live="polite">
@@ -189,6 +215,22 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
               {cepStatus === "loading" ? FORM.resolving : cepStatus === "error" ? errors.cep : ""}
             </div>
             <p className="cep__help" data-step-item>{FORM.cepHelp}</p>
+          </div>
+        ) : null}
+
+        {step === "unit" && city && unit ? (
+          <div className="confirm unit">
+            <p className="confirm__q" data-step-item>{FORM.unit.eyebrow}</p>
+            <p className="unit__title" data-step-item>{fill(FORM.unit.title, { city: city.city })}</p>
+            <p className="unit__text" data-step-item>{FORM.unit.text}</p>
+            <div className="confirm__actions" data-step-item>
+              <a className="btn btn--black btn-arrow" href={unit.url ?? SITE.studentUrl} target="_blank" rel="noopener" onClick={() => track("unit_click", { unit: unit.slug, variant })}>
+                {fill(FORM.unit.cta, { city: unit.label ?? unit.city })}
+              </a>
+              <button type="button" className="confirm__fix" onClick={fixCity}>
+                {FORM.unit.fix}
+              </button>
+            </div>
           </div>
         ) : null}
 
@@ -223,25 +265,47 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
               <button type="button" onClick={fixCity}>{FORM.confirmFix}</button>
             </div>
             <div className="fields">
-              {(["first_name", "last_name", "phone", "email"] as const).map((k, i) => (
-                <div className="field" key={k} data-step-item>
-                  <label className="field__label" htmlFor={`${id}-${k}`}>{FORM.fields[k]}</label>
+              {TEXT_FIELDS.map((f, i) => (
+                <div className="field" key={f.k} data-step-item>
+                  <label className="field__label" htmlFor={`${id}-${f.k}`}>{FORM.fields[f.k]}</label>
                   <input
                     ref={i === 0 ? firstRef : undefined}
-                    id={`${id}-${k}`}
+                    id={`${id}-${f.k}`}
                     className="field__input"
-                    type={k === "email" ? "email" : k === "phone" ? "tel" : "text"}
-                    inputMode={k === "phone" ? "tel" : k === "email" ? "email" : "text"}
-                    autoComplete={k === "first_name" ? "given-name" : k === "last_name" ? "family-name" : k === "phone" ? "tel-national" : "email"}
-                    value={fields[k]}
-                    onChange={(e) => set(k)(e.target.value)}
-                    aria-invalid={!!errors[k]}
-                    aria-describedby={errors[k] ? `${id}-${k}-err` : undefined}
+                    type={f.type}
+                    inputMode={f.mode}
+                    autoComplete={f.ac}
+                    placeholder={f.placeholder}
+                    maxLength={f.max}
+                    value={fields[f.k]}
+                    onChange={(e) => set(f.k)(e.target.value)}
+                    aria-invalid={!!errors[f.k]}
+                    aria-describedby={errors[f.k] ? `${id}-${f.k}-err` : f.help ? `${id}-${f.k}-help` : undefined}
                     required
                   />
-                  <span className="field__error" id={`${id}-${k}-err`}>{errors[k] ?? ""}</span>
+                  {f.help ? <span className="field__help" id={`${id}-${f.k}-help`}>{f.help}</span> : null}
+                  <span className="field__error" id={`${id}-${f.k}-err`}>{errors[f.k] ?? ""}</span>
                 </div>
               ))}
+              <div className="field field--full" data-step-item role="radiogroup" aria-labelledby={`${id}-sex-label`}>
+                <span className="field__label" id={`${id}-sex-label`}>{FORM.fields.sex}</span>
+                <div className="seg">
+                  {FORM.sexOptions.map((o) => (
+                    <button
+                      key={o.value}
+                      type="button"
+                      id={`${id}-sex-${o.value}`}
+                      className="seg__opt"
+                      role="radio"
+                      aria-checked={fields.sex === o.value}
+                      onClick={() => setFields((f) => ({ ...f, sex: o.value }))}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                <span className="field__error">{errors.sex ?? ""}</span>
+              </div>
             </div>
             <label className="consent" data-step-item>
               <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} aria-invalid={!!errors.privacy_consent} />
