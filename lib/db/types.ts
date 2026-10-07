@@ -1,0 +1,103 @@
+// Tipos do armazenamento da campanha. A implementação pode ser Supabase (produção) ou um arquivo local (desenvolvimento).
+
+export type Utm = {
+  source?: string | null;
+  medium?: string | null;
+  campaign?: string | null;
+  content?: string | null;
+  term?: string | null;
+};
+
+export type City = {
+  slug: string;
+  name: string;
+  uf: string;
+  ibge?: string | null;
+  lat: number;
+  lng: number;
+  approx_location: boolean;
+};
+
+export type Lead = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  cep: string;
+  city_slug: string;
+  city: string;
+  state: string;
+  referral_code: string;
+  referred_by: string | null;
+  privacy_consent: boolean;
+  marketing_consent: boolean;
+  utm: Utm;
+  first_touch: Record<string, string> | null;
+  last_touch: Record<string, string> | null;
+  experiment: Record<string, string> | null;
+  created_at: string;
+};
+
+export type NewLeadInput = Omit<Lead, "id" | "created_at"> & { ip_hash?: string | null; user_agent?: string | null };
+
+export type RankingRow = {
+  rank: number;
+  slug: string;
+  name: string;
+  uf: string;
+  lat: number;
+  lng: number;
+  leads: number;
+  founders: number;
+  pct: number;
+  founder_slots_left: number;
+};
+
+export type NationalStats = { leads: number; cities: number; states: number };
+
+export type EventInput = {
+  name: string;
+  lead_id?: string | null;
+  props?: Record<string, unknown>;
+  path?: string | null;
+  referral_code?: string | null;
+  utm?: Utm;
+  session_id?: string | null;
+  ip_hash?: string | null;
+  user_agent?: string | null;
+};
+
+export type ReferralClickInput = {
+  referral_code: string;
+  owner_lead_id: string | null;
+  ip_hash?: string | null;
+  user_agent?: string | null;
+  utm?: Utm;
+};
+
+export type Testimonial = { id: string; name: string; city: string; text: string; photo_url: string | null };
+
+export type ReferralStats = { clicks: number; signups: number; network: number };
+
+export interface Store {
+  readonly kind: "supabase" | "local" | "none";
+  upsertCity(city: City): Promise<City>;
+  createLead(input: NewLeadInput): Promise<{ lead: Lead; created: boolean }>;
+  getLeadById(id: string): Promise<Lead | null>;
+  getLeadByCode(code: string): Promise<Lead | null>;
+  codeExists(code: string): Promise<boolean>;
+  recordReferralClick(input: ReferralClickInput): Promise<void>;
+  recordEvent(input: EventInput): Promise<void>;
+  nationalStats(): Promise<NationalStats>;
+  ranking(opts?: { limit?: number; uf?: string }): Promise<RankingRow[]>;
+  cityStat(slug: string): Promise<RankingRow | null>;
+  getCity(slug: string): Promise<City | null>;
+  stateGroupUrl(uf: string): Promise<string | null>;
+  saveQualification(leadId: string, answers: Record<string, string>): Promise<void>;
+  referralStats(code: string): Promise<ReferralStats>;
+  testimonials(): Promise<Testimonial[]>;
+}
+
+export const CITY_GOAL = 500;
+export const FOUNDER_SLOTS = 50;

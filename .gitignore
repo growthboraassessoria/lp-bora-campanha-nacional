@@ -1,0 +1,12 @@
+node_modules
+.next
+out
+.env*
+!.env.example
+.data
+*.tsbuildinfo
+.DS_Store
+
+# Ferramentas de deploy
+.vercel
+supabase/.temp
