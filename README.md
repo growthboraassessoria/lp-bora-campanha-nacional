@@ -1,0 +1,41 @@
+# LP · BORA, Vamos em Frente
+
+Landing page da campanha nacional da BORA: a pessoa digita o CEP, coloca a cidade no mapa, chama amigos pelo link pessoal e acompanha o ranking de cidades. Quando a cidade ganha força, abrem as vagas de Aluno Fundador (Founding 50).
+
+## Stack
+
+- Next.js 16 (App Router, TypeScript), React 19
+- GSAP 3.15 (ScrollTrigger, DrawSVG, SplitText)
+- Supabase (Postgres com RLS; chave de serviço só no servidor)
+- Fonte Altone local (`app/fonts`), identidade visual 2026 da BORA (`public/brand`)
+
+## Rodar
+
+```bash
+npm install
+cp .env.example .env.local   # preencha o que tiver
+npm run dev                  # http://localhost:3000
+```
+
+Sem `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`, em desenvolvimento os dados vão para `.data/db.json` (apague o arquivo para zerar). Em produção, sem essas variáveis, nada é gravado.
+
+## Variáveis de ambiente
+
+Veja `.env.example`. As obrigatórias em produção: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `LEAD_COOKIE_SECRET`, `NEXT_PUBLIC_SITE_URL`. Opcionais: `NEXT_PUBLIC_SHORT_DOMAIN` (só quando o domínio curto estiver apontando para a LP), `NEXT_PUBLIC_GA_ID`, `NEXT_PUBLIC_META_PIXEL_ID`, Turnstile e `NEXT_PUBLIC_CHECKOUT_URL`.
+
+## Banco
+
+Migrations em `supabase/migrations`. Com o CLI do Supabase vinculado ao projeto: `supabase db push`.
+
+## Rotas
+
+`/` (campanha), `/obrigado` (pós-cadastro, com link de indicação), `/cidade/[uf-slug]`, `/ranking`, `/fundador`, `/r/[codigo]` (link de indicação), `/api/story` (story 1080×1920 da cidade), `/privacidade`, `/termos`.
+
+## QA
+
+- `node scripts/qa-shots.mjs [pasta] [base]` captura páginas em desktop e celular e aponta estouro horizontal.
+- `node scripts/qa-flow.mjs` percorre cadastro → obrigado → link → cidade → ranking → story → fundador.
+- `node scripts/qa-overflow.mjs [url] [largura]` lista o que passa da borda da tela.
+- `node scripts/qa-404.mjs` lista respostas com erro e erros de console nas rotas.
+
+Os scripts usam o Google Chrome instalado na máquina (`puppeteer-core`).

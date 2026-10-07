@@ -58,29 +58,32 @@ export default function BrazilMap({ cities, focus = null, labels = 6, interactiv
   const labeled = useMemo(() => [...points].sort((a, b) => b.leads - a.leads).slice(0, labels), [points, labels]);
   const you = focus && typeof focus.lat === "number" && typeof focus.lng === "number" ? project(focus.lng!, focus.lat!) : null;
 
-  // Câmera: Brasil inteiro, um estado ou uma cidade.
+  // Câmera: Brasil inteiro, o estado em foco (com a cidade marcada) ou, sem estado, a vizinhança da cidade.
+  const cam = useMemo(() => {
+    if (focus?.uf) {
+      const b = stateBox(focus.uf);
+      if (b) {
+        const pad = 14;
+        const w = Math.max(b[2] - b[0], b[3] - b[1]) + pad * 2;
+        return { x: (b[0] + b[2]) / 2 - w / 2, y: (b[1] + b[3]) / 2 - w / 2, w };
+      }
+    }
+    if (you) return { x: you[0] - 40, y: you[1] - 40, w: 80 };
+    return { x: 0, y: 0, w: MAP_SIZE };
+  }, [focus?.uf, you?.[0], you?.[1]]);
+  const z = cam.w / MAP_SIZE; // fator de zoom: 1 no Brasil inteiro, ~0.2 num estado
+  const zoomed = z < 0.8;
+
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
-    let vb = `0 0 ${MAP_SIZE} ${MAP_SIZE}`;
-    if (you) {
-      const w = 70;
-      vb = `${you[0] - w / 2} ${you[1] - w / 2} ${w} ${w}`;
-    } else if (focus?.uf) {
-      const b = stateBox(focus.uf);
-      if (b) {
-        const pad = 18;
-        const w = Math.max(b[2] - b[0], b[3] - b[1]) + pad * 2;
-        vb = `${(b[0] + b[2]) / 2 - w / 2} ${(b[1] + b[3]) / 2 - w / 2} ${w} ${w}`;
-      }
-    }
+    const vb = `${cam.x} ${cam.y} ${cam.w} ${cam.w}`;
     if (prefersReducedMotion()) {
       svg.setAttribute("viewBox", vb);
       return;
     }
     gsap.to(svg, { attr: { viewBox: vb }, duration: 1.6, ease: "power3.inOut", overwrite: "auto" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [focus?.uf, you?.[0], you?.[1]]);
+  }, [cam]);
 
   // Parallax sutil ao mouse (só desktop, ponteiro fino e sem movimento reduzido).
   useEffect(() => {
@@ -118,35 +121,35 @@ export default function BrazilMap({ cities, focus = null, labels = 6, interactiv
         </clipPath>
       </defs>
       <g ref={groupRef}>
-        <image href={T.pattern} x="-30" y="-50" width="470" height="526" preserveAspectRatio="xMidYMid slice" opacity={patternOpacity} clipPath={`url(#clip-${uid})`} />
+        {zoomed || patternOpacity <= 0 ? null : <image href={T.pattern} x="-30" y="-50" width="470" height="526" preserveAspectRatio="xMidYMid slice" opacity={patternOpacity} clipPath={`url(#clip-${uid})`} />}
         {BR_STATES.map((s) => {
           const active = focus?.uf === s.uf;
           const dim = !!focus?.uf && !active;
           return (
-            <path key={s.uf} className="map-state" d={s.d} fill={active ? T.fillActive : T.fill} stroke={active ? T.strokeActive : T.stroke} strokeWidth={active ? 1 : 0.65} vectorEffect="non-scaling-stroke" opacity={dim ? 0.5 : 1} style={{ transition: "fill .6s, stroke .6s, opacity .6s" }} />
+            <path key={s.uf} className="map-state" d={s.d} fill={active ? T.fillActive : T.fill} stroke={active ? T.strokeActive : T.stroke} strokeWidth={active ? 1 : 0.65} vectorEffect="non-scaling-stroke" fillOpacity={dim ? 0.55 : 1} strokeOpacity={dim ? 0.45 : 1} style={{ transition: "fill .6s, stroke .6s, fill-opacity .6s, stroke-opacity .6s" }} />
           );
         })}
         {showUf
           ? BR_STATES.map((s) => (
-              <text key={s.uf} x={s.cx} y={s.cy + 2} textAnchor="middle" fontSize="6" fontWeight="700" fill={T.uf} letterSpacing="0.5">
+              <text key={s.uf} x={s.cx} y={s.cy + 2} textAnchor="middle" fontSize={6 * Math.max(z, 0.35)} fontWeight="700" fill={T.uf} letterSpacing="0.5">
                 {s.uf}
               </text>
             ))
           : null}
         {points.map((p, i) => (
-          <circle key={p.slug} className="map-dot" cx={p.x} cy={p.y} r={p.r} fill="#ceff00" stroke={T.dotStroke} strokeWidth="0.5" style={{ animation: `map-pulse 3.2s ease-in-out ${(i % 7) * 0.4}s infinite`, transformBox: "fill-box", transformOrigin: "center" }} />
+          <circle key={p.slug} className="map-dot" cx={p.x} cy={p.y} r={p.r * Math.max(z, 0.4)} fill="#ceff00" stroke={T.dotStroke} strokeWidth={0.5 * Math.max(z, 0.4)} style={{ animation: `map-pulse 3.2s ease-in-out ${(i % 7) * 0.4}s infinite`, transformBox: "fill-box", transformOrigin: "center" }} />
         ))}
         {labeled.map((p) => (
-          <text key={`l-${p.slug}`} className="map-label" x={p.x + p.r + 2.5} y={p.y + 2} fontSize="6" fontWeight="700" fill={T.label} letterSpacing="0.6">
+          <text key={`l-${p.slug}`} className="map-label" x={p.x + p.r * Math.max(z, 0.4) + 2.5 * z} y={p.y + 2 * z} fontSize={6 * Math.max(z, 0.35)} fontWeight="700" fill={T.label} letterSpacing="0.6">
             {p.name.toUpperCase()}
           </text>
         ))}
         {you ? (
           <g className="map-you">
-            <circle cx={you[0]} cy={you[1]} r="7" fill="none" stroke={T.ring} strokeWidth="0.8" opacity="0.7" style={{ animation: "map-ring 2s ease-out infinite", transformBox: "fill-box", transformOrigin: "center" }} />
-            <circle cx={you[0]} cy={you[1]} r="2.6" fill="#ceff00" stroke="#000" strokeWidth="0.7" />
+            <circle cx={you[0]} cy={you[1]} r={7 * Math.max(z, 0.4)} fill="none" stroke={T.ring} strokeWidth={0.8 * Math.max(z, 0.4)} opacity="0.7" style={{ animation: "map-ring 2s ease-out infinite", transformBox: "fill-box", transformOrigin: "center" }} />
+            <circle cx={you[0]} cy={you[1]} r={2.6 * Math.max(z, 0.4)} fill="#ceff00" stroke="#000" strokeWidth={0.7 * Math.max(z, 0.4)} />
             {focus?.label ? (
-              <text x={you[0]} y={you[1] - 6} textAnchor="middle" fontSize="4" fontWeight="900" fill={T.label} letterSpacing="0.5">
+              <text x={you[0]} y={you[1] - 6 * Math.max(z, 0.4)} textAnchor="middle" fontSize={4 * Math.max(z, 0.5)} fontWeight="900" fill={T.label} letterSpacing="0.5">
                 {focus.label.toUpperCase()}
               </text>
             ) : null}

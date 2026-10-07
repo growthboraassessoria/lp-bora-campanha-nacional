@@ -16,7 +16,7 @@ export default function Headline({ lines, as: Tag = "h2", size = "m", className 
     <Tag id={id} className={`display display-${size} ${className}`.trim()}>
       {lines.map((l, i) => (
         <span className="line" key={i}>
-          <span className={`line__in${green.includes(i) ? " is-green" : ""}${outline.includes(i) ? " is-outline" : ""}`}>{l}</span>
+          <span className="line__in">{green.includes(i) ? <span className="is-green">{l}</span> : outline.includes(i) ? <span className="is-outline">{l}</span> : l}</span>
         </span>
       ))}
     </Tag>

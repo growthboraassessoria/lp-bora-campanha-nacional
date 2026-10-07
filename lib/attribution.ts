@@ -51,8 +51,9 @@ export function parseExperiment(raw: string | undefined): Experiment {
 }
 
 export function shortLink(code: string): string {
-  const domain = process.env.NEXT_PUBLIC_SHORT_DOMAIN || "bora.com.br";
-  return `${domain}/r/${code}`;
+  const domain = process.env.NEXT_PUBLIC_SHORT_DOMAIN;
+  if (domain) return `${domain}/r/${code}`;
+  return absoluteUrl(`/r/${code}`).replace(/^https?:\/\//, "");
 }
 
 export function absoluteUrl(path: string): string {

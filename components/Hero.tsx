@@ -31,10 +31,10 @@ export default function Hero({ variant, cities }: Props) {
     <section ref={ref} className="hero" aria-labelledby="hero-title">
       <div className="hero__content">
         <p className="eyebrow eyebrow--dot hero__eyebrow">{HERO.eyebrow}</p>
-        <h1 id="hero-title" className={`display ${variant === "B" ? "display-l" : "display-xl"} hero__title`}>
+        <h1 id="hero-title" className={`display display-xl hero__title${variant === "B" ? " hero__title--b" : ""}`}>
           {lines.map((l, i) => (
             <span className="line" key={i}>
-              <span className={`line__in${i === lines.length - 1 ? " is-green" : ""}`}>{l}</span>
+              <span className="line__in">{i === lines.length - 1 ? <span className="is-green">{l}</span> : l}</span>
             </span>
           ))}
         </h1>
