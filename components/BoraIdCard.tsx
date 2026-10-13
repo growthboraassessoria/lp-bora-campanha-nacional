@@ -1,8 +1,10 @@
 "use client";
 // A carteirinha digital: BORA ID, nome, cidade e o QR do link pessoal. No desktop, inclina com o ponteiro.
 import { useEffect, useRef } from "react";
-import { THANKS } from "@/lib/copy";
-import { formatBoraId, formatDateBr } from "@/lib/boraid";
+import { fill } from "@/lib/copy";
+import { formatBoraId } from "@/lib/boraid";
+import { formatDate } from "@/lib/locale";
+import { useCopy, useLocale } from "./LocaleProvider";
 import { track } from "@/lib/analytics";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/hooks/useGsap";
@@ -10,6 +12,8 @@ import { prefersReducedMotion } from "@/hooks/useGsap";
 type Props = { number: number; name: string; city: string; uf: string; since: string; code: string; qr: { size: number; path: string }; link: string };
 
 export default function BoraIdCard({ number, name, city, uf, since, code, qr, link }: Props) {
+  const { THANKS } = useCopy();
+  const locale = useLocale();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -42,7 +46,7 @@ export default function BoraIdCard({ number, name, city, uf, since, code, qr, li
   const id = formatBoraId(number);
   return (
     <div className="boraid">
-      <div ref={ref} className="boraid__card" aria-label={`Carteirinha BORA ${id}`}>
+      <div ref={ref} className="boraid__card" aria-label={fill(THANKS.card.aria, { id })}>
         <div className="boraid__holo" aria-hidden="true" />
         <div className="boraid__top">
           <img src="/brand/logo-white.png" alt="BORA" width={1200} height={307} className="boraid__logo" />
@@ -58,11 +62,11 @@ export default function BoraIdCard({ number, name, city, uf, since, code, qr, li
         <div className="boraid__foot">
           <div className="boraid__meta">
             <span className="boraid__k">{THANKS.card.since}</span>
-            <span className="boraid__v">{formatDateBr(since)}</span>
+            <span className="boraid__v">{formatDate(since, locale)}</span>
             <span className="boraid__k boraid__k--gap">{THANKS.card.campaign}</span>
             <span className="boraid__v">{code}</span>
           </div>
-          <div className="boraid__qr" role="img" aria-label={`QR code do link ${link}`}>
+          <div className="boraid__qr" role="img" aria-label={fill(THANKS.card.qrAria, { link })}>
             <svg viewBox={`0 0 ${qr.size} ${qr.size}`} shapeRendering="crispEdges">
               <path d={qr.path} fill="#000" />
             </svg>

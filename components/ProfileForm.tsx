@@ -1,8 +1,10 @@
 "use client";
 // Perfil do membro: foto (recortada no navegador), dados, telefones, Instagram, linha sobre você, CEP e perfil público.
 import { useRef, useState, type FormEvent } from "react";
-import { PROFILE, fill } from "@/lib/copy";
-import { MESSAGES, formatCep, formatPhone, validateProfile, type ProfileErrors } from "@/lib/validation";
+import { fill } from "@/lib/copy";
+import { ufLabel } from "@/lib/locale";
+import { formatPhoneFor, formatPostal, messagesFor, validateProfile, type ProfileErrors } from "@/lib/validation";
+import { useConfig, useCopy } from "./LocaleProvider";
 import type { SafeLead } from "@/lib/profile";
 import { track } from "@/lib/analytics";
 
@@ -31,6 +33,12 @@ async function squareJpeg(file: File, size = 512): Promise<string> {
 }
 
 export default function ProfileForm({ lead }: Props) {
+  const { PROFILE } = useCopy();
+  const cfg = useConfig();
+  const locale = cfg.locale;
+  const MESSAGES = messagesFor(locale);
+  const formatPhone = (v: string) => formatPhoneFor(v, locale);
+  const formatCep = (v: string) => formatPostal(v, locale);
   const [f, setF] = useState({
     first_name: lead.first_name,
     last_name: lead.last_name,
@@ -69,7 +77,7 @@ export default function ProfileForm({ lead }: Props) {
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (saving) return;
-    const errs = validateProfile({ ...f, phone: f.phone, phone2: f.phone2 });
+    const errs = validateProfile({ ...f, phone: f.phone, phone2: f.phone2 }, locale);
     setErrors(errs);
     if (Object.keys(errs).length) return;
     setSaving(true);
@@ -141,12 +149,12 @@ export default function ProfileForm({ lead }: Props) {
         </div>
         <div className="field">
           <label className="field__label" htmlFor="perfil-cep">{PROFILE.fields.cep}</label>
-          <input id="perfil-cep" className="field__input" inputMode="numeric" autoComplete="postal-code" placeholder={PROFILE.placeholders.cep} maxLength={9} value={f.cep} onChange={(e) => set("cep")(e.target.value)} aria-invalid={!!errors.cep} />
+          <input id="perfil-cep" className="field__input" inputMode="numeric" autoComplete="postal-code" placeholder={PROFILE.placeholders.cep} maxLength={cfg.postal.maxLength} value={f.cep} onChange={(e) => set("cep")(e.target.value)} aria-invalid={!!errors.cep} />
           <span className="field__error">{errors.cep ?? ""}</span>
         </div>
         <div className="field profile__cep">
           <span>
-            {PROFILE.cepCity} <b>{city.city} · {city.state}</b>
+            {PROFILE.cepCity} <b>{city.city} · {ufLabel(city.state)}</b>
           </span>
           <span className="profile__hint">{PROFILE.cepHint}</span>
         </div>

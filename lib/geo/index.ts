@@ -2,13 +2,25 @@
 // O mapa usa uma projeção equirretangular simples sobre o retângulo lon -74..-34 / lat 6..-34,
 // que vira o espaço 0..400 × 0..400 do SVG. As mesmas fórmulas valem para estados e cidades.
 
-export { BR_STATES } from "./states";
+import { BR_STATES } from "./states";
+import type { Geo } from "./types";
+import { US_STATE_NAMES } from "./us-names";
+
+export { BR_STATES };
 export type { StateShape } from "./states";
+export type { Geo } from "./types";
 
 export const MAP_SIZE = 400;
 
 export function project(lng: number, lat: number): [number, number] {
   return [((lng + 74) / 40) * MAP_SIZE, ((6 - lat) / 40) * MAP_SIZE];
+}
+
+export const BR_GEO: Geo = { width: MAP_SIZE, height: MAP_SIZE, states: BR_STATES, project };
+
+/** Nome do estado pela sigla do banco: UF brasileira ("GO") ou ISO americana ("US-TX"). */
+export function stateName(uf: string): string {
+  return UF_NAMES[uf] ?? US_STATE_NAMES[uf] ?? uf.replace(/^US-/, "");
 }
 
 export const UF_NAMES: Record<string, string> = {

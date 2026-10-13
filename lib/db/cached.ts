@@ -2,6 +2,7 @@
 import "server-only";
 import { getStore } from "./index";
 import type { NationalStats, RankingRow, Testimonial } from "./types";
+import type { Locale } from "../locale";
 
 const TTL = 60_000;
 const box = new Map<string, { at: number; value: unknown }>();
@@ -14,8 +15,12 @@ async function cached<T>(key: string, fn: () => Promise<T>): Promise<T> {
   return value;
 }
 
-export const getNationalStats = () => cached<NationalStats>("stats", () => getStore().nationalStats());
-export const getRanking = (limit?: number) => cached<RankingRow[]>(`ranking:${limit ?? "all"}`, () => getStore().ranking(limit ? { limit } : {}));
+/** Ranking completo de um país. Os totais saem dele, para não consultar o banco duas vezes. */
+export const getRanking = (country: Locale = "br") => cached<RankingRow[]>(`ranking:${country}`, () => getStore().ranking({ country }));
+export async function getNationalStats(country: Locale = "br"): Promise<NationalStats> {
+  const rows = await getRanking(country);
+  return { leads: rows.reduce((n, r) => n + r.leads, 0), cities: rows.length, states: new Set(rows.map((r) => r.uf)).size };
+}
 export const getTestimonials = () => cached<Testimonial[]>("testimonials", () => getStore().testimonials());
 export function invalidatePublicCache() {
   box.clear();

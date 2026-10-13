@@ -2,6 +2,7 @@
 // O esquema está em supabase/migrations/0001_init.sql.
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { CITY_GOAL, FOUNDER_SLOTS } from "./types";
+import { isUsState, localeOfSlug } from "../locale";
 import type { City, Lead, NationalStats, PublicMember, RankingRow, Sex, Store, Testimonial } from "./types";
 
 type LeadRow = {
@@ -30,6 +31,11 @@ function toRanking(rows: StatRow[]): RankingRow[] {
   }));
 }
 
+/** Telefone como é guardado: só dígitos, mantendo o "+" de quem veio em E.164 (EUA). */
+const normPhone = (p: string) => (p.trim().startsWith("+") ? "+" : "") + p.replace(/\D/g, "");
+/** Valor entre aspas para os filtros `or` do PostgREST (vírgula, ponto e "+" não quebram a expressão). */
+const quoted = (v: string) => `"${v.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`;
+
 export function makeSupabaseStore(url: string, serviceKey: string): Store {
   const db: SupabaseClient = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const fail = (where: string, error: { message: string } | null) => {
@@ -38,6 +44,11 @@ export function makeSupabaseStore(url: string, serviceKey: string): Store {
   return {
     kind: "supabase",
     async upsertCity(city) {
+      // Os estados dos EUA não vêm semeados: a linha nasce com a primeira cidade dele.
+      if (isUsState(city.uf)) {
+        const { error: stErr } = await db.from("states").upsert({ uf: city.uf, name: city.state_name ?? city.uf.replace(/^US-/, "") }, { onConflict: "uf", ignoreDuplicates: true });
+        fail("states.upsert", stErr);
+      }
       const { error } = await db.from("cities").upsert(
         { slug: city.slug, name: city.name, uf: city.uf, ibge: city.ibge ?? null, lat: city.lat, lng: city.lng, approx_location: city.approx_location },
         { onConflict: "slug", ignoreDuplicates: false },
@@ -46,10 +57,11 @@ export function makeSupabaseStore(url: string, serviceKey: string): Store {
       return city;
     },
     async createLead(input) {
-      const phone = input.phone.replace(/\D/g, "");
+      const phone = normPhone(input.phone);
       const email = input.email.trim().toLowerCase();
       const cpf = input.cpf ? input.cpf.replace(/\D/g, "") : null;
-      const same = [`phone.eq.${phone}`, `email.eq.${email}`, ...(cpf ? [`cpf.eq.${cpf}`] : [])].join(",");
+      // E-mail e telefone são únicos na tabela inteira: uma pessoa, um BORA ID, em qualquer país.
+      const same = [`phone.eq.${quoted(phone)}`, `email.eq.${quoted(email)}`, ...(cpf ? [`cpf.eq.${cpf}`] : [])].join(",");
       const { data: existing } = await db.from("leads").select("*").or(same).limit(1).maybeSingle<LeadRow>();
       if (existing) return { lead: toLead(existing), created: false };
       const row = {
@@ -57,6 +69,7 @@ export function makeSupabaseStore(url: string, serviceKey: string): Store {
         referral_code: input.referral_code, referred_by: input.referred_by, privacy_consent: input.privacy_consent, marketing_consent: input.marketing_consent,
         utm_source: input.utm.source ?? null, utm_medium: input.utm.medium ?? null, utm_campaign: input.utm.campaign ?? null, utm_content: input.utm.content ?? null, utm_term: input.utm.term ?? null,
         first_touch: input.first_touch, last_touch: input.last_touch, experiment: input.experiment, ip_hash: input.ip_hash ?? null, user_agent: input.user_agent ?? null,
+        ...(input.site_id ? { site_id: input.site_id } : {}),
       };
       const { data, error } = await db.from("leads").insert(row).select("*").single<LeadRow>();
       fail("leads.insert", error);
@@ -72,6 +85,10 @@ export function makeSupabaseStore(url: string, serviceKey: string): Store {
     },
     async getLeadByCpf(cpf) {
       const { data } = await db.from("leads").select("*").eq("cpf", cpf).maybeSingle<LeadRow>();
+      return data ? toLead(data) : null;
+    },
+    async getLeadByPhone(phone) {
+      const { data } = await db.from("leads").select("*").eq("phone", normPhone(phone)).maybeSingle<LeadRow>();
       return data ? toLead(data) : null;
     },
     async updateLead(id, patch) {
@@ -111,6 +128,7 @@ export function makeSupabaseStore(url: string, serviceKey: string): Store {
       const { error } = await db.from("referral_clicks").insert({
         referral_code: input.referral_code, owner_lead_id: input.owner_lead_id, ip_hash: input.ip_hash ?? null, user_agent: input.user_agent ?? null,
         utm_source: input.utm?.source ?? null, utm_medium: input.utm?.medium ?? null, utm_campaign: input.utm?.campaign ?? null, utm_content: input.utm?.content ?? null, utm_term: input.utm?.term ?? null,
+        ...(input.site_id ? { site_id: input.site_id } : {}),
       });
       fail("referral_clicks.insert", error);
     },
@@ -119,22 +137,26 @@ export function makeSupabaseStore(url: string, serviceKey: string): Store {
         name: input.name, lead_id: input.lead_id ?? null, props: input.props ?? {}, path: input.path ?? null, referral_code: input.referral_code ?? null,
         session_id: input.session_id ?? null, ip_hash: input.ip_hash ?? null, user_agent: input.user_agent ?? null,
         utm_source: input.utm?.source ?? null, utm_medium: input.utm?.medium ?? null, utm_campaign: input.utm?.campaign ?? null, utm_content: input.utm?.content ?? null, utm_term: input.utm?.term ?? null,
+        ...(input.site_id ? { site_id: input.site_id } : {}),
       });
       fail("events.insert", error);
     },
-    async nationalStats(): Promise<NationalStats> {
-      const { data } = await db.from("national_stats").select("*").maybeSingle<{ leads: number; cities: number; states: number }>();
-      return { leads: Number(data?.leads ?? 0), cities: Number(data?.cities ?? 0), states: Number(data?.states ?? 0) };
+    async nationalStats(country = "br"): Promise<NationalStats> {
+      // Sai do ranking do país, não da view `national_stats`, que soma os dois países.
+      const rows = await this.ranking({ country });
+      return { leads: rows.reduce((n, r) => n + r.leads, 0), cities: rows.length, states: new Set(rows.map((r) => r.uf)).size };
     },
     async ranking(opts = {}) {
       let q = db.from("city_stats").select("*").gt("leads", 0).order("leads", { ascending: false }).order("name");
+      // O país da cidade está no slug: `us-<uf>-<cidade>` é dos EUA; o resto é do Brasil.
+      q = opts.country === "us" ? q.like("slug", "us-%") : q.not("slug", "like", "us-%");
       if (opts.uf) q = q.eq("uf", opts.uf);
       if (opts.limit) q = q.limit(opts.limit);
       const { data } = await q;
       return toRanking((data ?? []) as StatRow[]);
     },
     async cityStat(slug) {
-      const all = await this.ranking();
+      const all = await this.ranking({ country: localeOfSlug(slug) });
       return all.find((r) => r.slug === slug) ?? null;
     },
     async getCity(slug) {

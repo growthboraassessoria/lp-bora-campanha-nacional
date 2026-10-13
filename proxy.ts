@@ -1,12 +1,16 @@
 // Roda antes das páginas: sorteia a variante do experimento e guarda a atribuição (UTM e código de indicação) em cookies.
 import { NextResponse, type NextRequest } from "next/server";
 import { COOKIE_DAYS, EXPERIMENT_COOKIE, FIRST_TOUCH_COOKIE, LAST_TOUCH_COOKIE, REF_COOKIE, utmFromParams } from "@/lib/attribution";
+import { localeOfPath } from "@/lib/locale";
 
 const MAX_AGE = COOKIE_DAYS * 24 * 60 * 60;
 const base = { path: "/", sameSite: "lax" as const, maxAge: MAX_AGE };
 
 export function proxy(req: NextRequest) {
-  const res = NextResponse.next();
+  // Diz ao layout em qual país a página está (para o idioma do documento): /us é EUA, o resto é Brasil.
+  const headers = new Headers(req.headers);
+  headers.set("x-bora-locale", localeOfPath(req.nextUrl.pathname));
+  const res = NextResponse.next({ request: { headers } });
 
   // ?v=A ou ?v=B força a variante (revisão interna); sem isso, sorteio na primeira visita.
   const forced = req.nextUrl.searchParams.get("v");

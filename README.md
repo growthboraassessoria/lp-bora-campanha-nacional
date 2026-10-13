@@ -37,9 +37,21 @@ As respostas opcionais da página de obrigado ficam em `qualification_answers` (
 
 Quem se cadastrou entra em `/entrar` com CPF e data de nascimento (cookie assinado, o mesmo do pós-cadastro) e cai em `/eu`: carteirinha, desempenho das indicações (cliques, cadastros, rede, posição da cidade), link pessoal e perfil. No perfil dá para trocar foto (recortada em quadrado no navegador e guardada no bucket `avatars` do Supabase), nome, telefones, e-mail, Instagram, uma linha sobre você e o CEP (muda a cidade). Com o perfil público ligado, a pessoa aparece na página da cidade (`/cidade/[slug]`) com nome, inicial do sobrenome, foto, Instagram e, se permitir, um botão de WhatsApp. A entrada por CPF e data tem limite de tentativas por IP e por CPF; é uma proteção simples, pensada para dados de contato, não para dados sensíveis.
 
+## Versão dos EUA (`/us`)
+
+A mesma campanha em inglês, com mapa dos EUA e busca por ZIP code. Tudo o que muda entre os países está em `lib/locale.ts` (rotas, formatos, recursos ligados) e os textos em `lib/copy/br.ts` e `lib/copy/us.ts`, com as mesmas chaves. As páginas dos dois países usam as mesmas telas (`screens/`).
+
+- **Cadastro:** ZIP code, nome, celular, e-mail, data de nascimento (MM/DD/AAAA, mínimo de 13 anos) e sexo. Sem CPF. O aceite de mensagens de texto é uma caixa separada e opcional (`marketing_consent`).
+- **Entrada na área do membro:** celular e data de nascimento.
+- **Oferta oculta:** sem Founding 50, sem preço, sem grupo de WhatsApp e sem as praças da BORA. Para ligar, mudar `features` em `lib/locale.ts`.
+- **No banco não há coluna de país.** Cidade dos EUA tem slug `us-<uf>-<cidade>` (ex.: `us-tx-austin`) e estado no padrão ISO (`US-TX`), porque seis siglas existem nos dois países. O telefone vai em E.164 (`+1XXXXXXXXXX`). Cadastros, eventos e cliques dos EUA gravam `site_id = 'vamos-em-frente-us'`. O ranking e os totais de cada país filtram pelo slug.
+- **E-mail e telefone são únicos na tabela inteira:** uma pessoa tem um BORA ID só, em qualquer país. A numeração é uma só.
+- **Dados:** `data/us-zips.tsv` (ZIP → cidade, estado, posição; GeoNames, CC BY 4.0, crédito na página de termos) e `lib/geo/us-states.ts` (contornos do us-atlas, U.S. Census). Para regerar: `node scripts/build-us-zips.mjs /caminho/US.txt` e `node scripts/build-us-geo.mjs`.
+- **Teste:** `node scripts/qa-us.mjs [pasta] [base]`.
+
 ## Rotas
 
-`/` (campanha), `/obrigado` (pós-cadastro, com link de indicação), `/cidade/[uf-slug]`, `/ranking`, `/fundador`, `/entrar`, `/eu` (área do membro), `/r/[codigo]` (link de indicação), `/api/story` (story 1080×1920 da cidade), `/privacidade`, `/termos`.
+`/` (campanha), `/obrigado` (pós-cadastro, com link de indicação), `/cidade/[uf-slug]`, `/ranking`, `/fundador`, `/entrar`, `/eu` (área do membro), `/r/[codigo]` (link de indicação), `/api/story` (story 1080×1920 da cidade), `/privacidade`, `/termos`. Nos EUA: `/us`, `/us/thanks`, `/us/me`, `/us/login`, `/us/ranking`, `/us/city/[uf-cidade]`, `/us/privacy`, `/us/terms` e `/api/zip`.
 
 ## QA
 

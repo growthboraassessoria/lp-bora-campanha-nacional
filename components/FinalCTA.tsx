@@ -1,14 +1,15 @@
 "use client";
 // Fechamento: o ciclo volta para a pessoa. O mapa reage ao CEP mais uma vez.
 import { useState } from "react";
-import { FINAL } from "@/lib/copy";
 import { useGsap } from "@/hooks/useGsap";
 import { revealSection } from "@/lib/motion";
 import BrazilMap, { type MapCity, type MapFocus } from "./BrazilMap";
 import LeadForm, { type ResolvedCity } from "./LeadForm";
 import Headline from "./Headline";
+import { useCopy } from "./LocaleProvider";
 
 export default function FinalCTA({ cities }: { cities: MapCity[] }) {
+  const { FINAL } = useCopy();
   const [focus, setFocus] = useState<MapFocus>(null);
   const ref = useGsap<HTMLElement>(({ scope, reduced }) => revealSection(scope, reduced));
   return (

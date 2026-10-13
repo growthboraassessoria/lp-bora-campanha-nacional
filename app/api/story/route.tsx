@@ -1,10 +1,13 @@
 // Story dinâmico para o Instagram (1080×1920): "[CIDADE] ESTÁ EM #N · QUERO A BORA AQUI.", com o BORA ID e o QR do link.
+// O idioma é o do país do cadastro.
 import { ImageResponse } from "next/og";
-import { getStore } from "@/lib/db";
+import { getStore, CITY_GOAL } from "@/lib/db";
 import { isValidCode, shortLink, absoluteUrl } from "@/lib/referral";
 import { altoneFonts } from "@/lib/server/og-fonts";
 import { qrPath } from "@/lib/qr";
 import { formatBoraId } from "@/lib/boraid";
+import { getCopy, fill } from "@/lib/copy";
+import { formatNumber, localeOfLead } from "@/lib/locale";
 
 export const runtime = "nodejs";
 
@@ -12,7 +15,10 @@ export async function GET(req: Request) {
   const code = (new URL(req.url).searchParams.get("c") ?? "").toUpperCase();
   const store = getStore();
   const lead = isValidCode(code) ? await store.getLeadByCode(code) : null;
-  if (!lead) return new Response("Não encontrado", { status: 404 });
+  if (!lead) return new Response(getCopy("br").IMAGES.story.notFound, { status: 404 });
+  const locale = localeOfLead(lead);
+  const { IMAGES } = getCopy(locale);
+  const T = IMAGES.story;
   const stat = await store.cityStat(lead.city_slug);
   const rank = stat?.rank ?? null;
   const city = lead.city.toUpperCase();
@@ -24,18 +30,18 @@ export async function GET(req: Request) {
       <div style={{ width: 1080, height: 1920, display: "flex", flexDirection: "column", justifyContent: "space-between", background: "#000", color: "#fff", padding: 96, fontFamily: "Altone" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 34, fontWeight: 900, letterSpacing: 4 }}>
           <span>BORA</span>
-          <span style={{ fontSize: 26, fontWeight: 500, letterSpacing: 6, color: "#ceff00" }}>VAMOS EM FRENTE</span>
+          <span style={{ fontSize: 26, fontWeight: 500, letterSpacing: 6, color: "#ceff00" }}>{IMAGES.tag}</span>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <div style={{ fontSize: 40, fontWeight: 500, letterSpacing: 6, color: "rgba(255,255,255,.7)" }}>{rank ? "ESTÁ EM" : "ENTROU NO MAPA"}</div>
+          <div style={{ fontSize: 40, fontWeight: 500, letterSpacing: 6, color: "rgba(255,255,255,.7)" }}>{rank ? T.ranked : T.entered}</div>
           {rank ? <div style={{ fontSize: 320, fontWeight: 900, lineHeight: 0.85, color: "#ceff00", letterSpacing: -12 }}>{`#${rank}`}</div> : null}
           <div style={{ fontSize: city.length > 12 ? 96 : 128, fontWeight: 900, lineHeight: 0.9, letterSpacing: -4, marginTop: 24 }}>{city}</div>
-          <div style={{ fontSize: 60, fontWeight: 900, lineHeight: 1, marginTop: 32 }}>QUERO A BORA AQUI.</div>
+          <div style={{ fontSize: 60, fontWeight: 900, lineHeight: 1, marginTop: 32 }}>{T.want}</div>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <span style={{ fontSize: 24, fontWeight: 500, letterSpacing: 6, color: "rgba(255,255,255,.6)" }}>MEU BORA ID</span>
+              <span style={{ fontSize: 24, fontWeight: 500, letterSpacing: 6, color: "rgba(255,255,255,.6)" }}>{T.myId}</span>
               <span style={{ fontSize: 88, fontWeight: 900, lineHeight: 1, letterSpacing: -3, color: "#ceff00" }}>{formatBoraId(lead.bora_number)}</span>
               <span style={{ fontSize: 28, fontWeight: 500, letterSpacing: 2, color: "#ceff00", marginTop: 18 }}>{link}</span>
             </div>
@@ -49,8 +55,8 @@ export async function GET(req: Request) {
             <div style={{ height: 6, width: `${Math.min(100, stat?.pct ?? 0)}%`, background: "#ceff00" }} />
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 30, fontWeight: 500, letterSpacing: 2 }}>
-            <span>{stat ? `${stat.leads} PESSOAS · META 500` : "META 500"}</span>
-            <span style={{ color: "rgba(255,255,255,.6)" }}>APONTE A CÂMERA PARA ENTRAR</span>
+            <span>{stat ? fill(stat.leads === 1 ? T.person : T.people, { n: formatNumber(stat.leads, locale), goal: CITY_GOAL }) : fill(T.goal, { goal: CITY_GOAL })}</span>
+            <span style={{ color: "rgba(255,255,255,.6)" }}>{T.scan}</span>
           </div>
         </div>
       </div>

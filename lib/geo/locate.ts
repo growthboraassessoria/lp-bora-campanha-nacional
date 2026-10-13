@@ -1,6 +1,7 @@
 // Localização no navegador: descobre o estado pelo contorno (ponto dentro do polígono) e a cidade conhecida mais perto.
 // Roda só no cliente; a posição nunca sai do aparelho (o evento de analytics leva apenas a UF).
-import { BR_STATES, project } from "./index";
+// Vale para qualquer país: quem chama passa a geografia (contornos e projeção).
+import type { Geo } from "./types";
 
 export type NearCity = { slug: string; name: string; uf: string };
 export type Located = { lat: number; lng: number; uf: string; near: NearCity | null };
@@ -35,9 +36,10 @@ function inside(poly: number[][], x: number, y: number) {
   return ok;
 }
 
-export function ufFromPoint(lat: number, lng: number): string | null {
-  const [x, y] = project(lng, lat);
-  for (const s of BR_STATES) for (const poly of polygons(s.uf, s.d)) if (inside(poly, x, y)) return s.uf;
+export function ufFromPoint(geo: Geo, lat: number, lng: number): string | null {
+  const p = geo.project(lng, lat);
+  if (!p) return null;
+  for (const s of geo.states) for (const poly of polygons(s.uf, s.d)) if (inside(poly, p[0], p[1])) return s.uf;
   return null;
 }
 
@@ -62,9 +64,9 @@ export function nearestCity(lat: number, lng: number, cities: (NearCity & { lat:
   return best;
 }
 
-/** Estado e, se houver uma cidade conhecida a menos de 40 km, a cidade. `null` fora do Brasil. */
-export function locate(lat: number, lng: number, cities: (NearCity & { lat: number; lng: number })[]): Located | null {
-  const uf = ufFromPoint(lat, lng);
+/** Estado e, se houver uma cidade conhecida a menos de 40 km, a cidade. `null` fora do país. */
+export function locate(geo: Geo, lat: number, lng: number, cities: (NearCity & { lat: number; lng: number })[]): Located | null {
+  const uf = ufFromPoint(geo, lat, lng);
   if (!uf) return null;
   return { lat, lng, uf, near: nearestCity(lat, lng, cities.filter((c) => c.uf === uf)) };
 }

@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { altone } from "./fonts";
-import { SITE } from "@/lib/copy";
+import { SITE, META } from "@/lib/copy";
+import { LOCALES } from "@/lib/locale";
 import AnalyticsBoot from "@/components/AnalyticsBoot";
 import "./globals.css";
 
@@ -8,10 +10,10 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
-  title: { default: "BORA na sua cidade · BORA, Vamos em Frente", template: "%s · BORA, Vamos em Frente" },
+  title: { default: META.title, template: META.template },
   description: SITE.description,
-  openGraph: { title: "BORA na sua cidade.", description: SITE.description, type: "website", locale: "pt_BR", siteName: SITE.name },
-  twitter: { card: "summary_large_image", title: "BORA na sua cidade.", description: SITE.description },
+  openGraph: { title: META.ogTitle, description: SITE.description, type: "website", locale: "pt_BR", siteName: SITE.name },
+  twitter: { card: "summary_large_image", title: META.ogTitle, description: SITE.description },
   robots: { index: true, follow: true },
   appleWebApp: { capable: true, statusBarStyle: "default", title: "BORA" },
   formatDetection: { telephone: false },
@@ -19,9 +21,11 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = { themeColor: "#ffffff", width: "device-width", initialScale: 1, maximumScale: 1, userScalable: false, viewportFit: "cover" };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // O proxy marca o país da página; o idioma do documento segue ele (pt-BR ou en-US).
+  const locale = (await headers()).get("x-bora-locale") === "us" ? "us" : "br";
   return (
-    <html lang="pt-BR" className={altone.variable}>
+    <html lang={LOCALES[locale].lang} className={altone.variable}>
       <body>
         {children}
         <AnalyticsBoot />

@@ -1,19 +1,24 @@
-// Perfil do membro: dados, telefones, Instagram, linha sobre você, foto, CEP (muda a cidade) e perfil público.
+// Perfil do membro: dados, telefones, Instagram, linha sobre você, foto, código postal (muda a cidade) e perfil público.
+// O país é o do próprio cadastro: um cadastro dos EUA só troca para outro ZIP code, e o do Brasil, para outro CEP.
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/db";
 import type { ProfilePatch } from "@/lib/db";
 import { safeLead } from "@/lib/profile";
 import { getCurrentLead } from "@/lib/server/session";
-import { resolveCep } from "@/lib/cep";
+import { resolvePostal } from "@/lib/server/postal";
 import { unitBlocking } from "@/lib/geo/units";
-import { SITE, FORM, fill } from "@/lib/copy";
-import { MESSAGES, cleanInstagram, cleanPhone, titleCase, validateProfile } from "@/lib/validation";
+import { getCopy, fill } from "@/lib/copy";
+import { cleanInstagram, messagesFor, storedPhone, titleCase, validateProfile } from "@/lib/validation";
+import { LOCALES, localeOfLead } from "@/lib/locale";
 
 export const runtime = "nodejs";
 
 export async function PATCH(req: Request) {
   const lead = await getCurrentLead();
   if (!lead) return NextResponse.json({ ok: false }, { status: 401 });
+  const locale = localeOfLead(lead);
+  const cfg = LOCALES[locale];
+  const MESSAGES = messagesFor(locale);
   const store = getStore();
   let body: Record<string, unknown>;
   try {
@@ -24,17 +29,17 @@ export async function PATCH(req: Request) {
   const f = {
     first_name: titleCase(String(body.first_name ?? lead.first_name)),
     last_name: titleCase(String(body.last_name ?? lead.last_name)),
-    phone: cleanPhone(String(body.phone ?? lead.phone)),
-    phone2: cleanPhone(String(body.phone2 ?? "")),
+    phone: String(body.phone ?? lead.phone),
+    phone2: String(body.phone2 ?? ""),
     email: String(body.email ?? lead.email).trim().toLowerCase(),
     instagram: cleanInstagram(String(body.instagram ?? "")),
     bio: String(body.bio ?? "").trim().replace(/\s+/g, " ").slice(0, 140),
   };
-  const errors = validateProfile(f);
+  const errors = validateProfile(f, locale);
   if (Object.keys(errors).length) return NextResponse.json({ ok: false, errors }, { status: 400 });
 
   const patch: ProfilePatch = {
-    first_name: f.first_name, last_name: f.last_name, phone: f.phone, phone2: f.phone2 || null, email: f.email, instagram: f.instagram || null, bio: f.bio || null,
+    first_name: f.first_name, last_name: f.last_name, phone: storedPhone(f.phone, locale), phone2: storedPhone(f.phone2, locale) || null, email: f.email, instagram: f.instagram || null, bio: f.bio || null,
     public_profile: body.public_profile === true,
     public_whatsapp: body.public_profile === true && body.public_whatsapp === true,
   };
@@ -42,12 +47,17 @@ export async function PATCH(req: Request) {
   const cep = String(body.cep ?? "").replace(/\D/g, "");
   let cityChanged = false;
   if (cep && cep !== lead.cep) {
-    if (!/^\d{8}$/.test(cep)) return NextResponse.json({ ok: false, errors: { cep: MESSAGES.cep } }, { status: 400 });
-    const r = await resolveCep(cep);
+    if (cep.length !== cfg.postal.digits) return NextResponse.json({ ok: false, errors: { cep: MESSAGES.cep } }, { status: 400 });
+    const r = await resolvePostal(locale, cep);
     if (!r) return NextResponse.json({ ok: false, errors: { cep: MESSAGES.cep } }, { status: 400 });
-    const unit = unitBlocking(r.slug, r.uf, cep);
-    if (unit) return NextResponse.json({ ok: false, unit: { slug: unit.slug, city: unit.city, uf: unit.uf, url: unit.url ?? SITE.studentUrl }, errors: { cep: fill(FORM.unit.title, { city: r.city }) } }, { status: 409 });
-    await store.upsertCity({ slug: r.slug, name: r.city, uf: r.uf, ibge: r.ibge, lat: r.lat, lng: r.lng, approx_location: r.approx });
+    if (cfg.features.units) {
+      const unit = unitBlocking(r.slug, r.uf, cep);
+      if (unit) {
+        const { SITE, FORM } = getCopy(locale);
+        return NextResponse.json({ ok: false, unit: { slug: unit.slug, city: unit.city, uf: unit.uf, url: unit.url ?? SITE.studentUrl }, errors: { cep: fill(FORM.unit.title, { city: r.city }) } }, { status: 409 });
+      }
+    }
+    await store.upsertCity({ slug: r.slug, name: r.city, uf: r.uf, ibge: r.ibge, lat: r.lat, lng: r.lng, approx_location: r.approx, state_name: r.stateName });
     Object.assign(patch, { cep, city_slug: r.slug, city: r.city, state: r.uf });
     cityChanged = true;
   }
@@ -68,7 +78,7 @@ export async function PATCH(req: Request) {
 
   try {
     const updated = await store.updateLead(lead.id, patch);
-    await store.recordEvent({ name: "profile_saved", lead_id: lead.id, path: "/eu", props: { public: patch.public_profile, whatsapp: patch.public_whatsapp, photo: !!updated.photo_url, instagram: !!updated.instagram, city_changed: cityChanged } });
+    await store.recordEvent({ name: "profile_saved", lead_id: lead.id, path: cfg.routes.me, site_id: locale === "br" ? null : cfg.siteId, props: { public: patch.public_profile, whatsapp: patch.public_whatsapp, photo: !!updated.photo_url, instagram: !!updated.instagram, city_changed: cityChanged } });
     return NextResponse.json({ ok: true, lead: safeLead(updated) });
   } catch (e) {
     console.error("[perfil]", e);

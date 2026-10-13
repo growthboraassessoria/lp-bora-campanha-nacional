@@ -1,10 +1,11 @@
 "use client";
 // Barra de ação fixa no celular (como um app): aparece quando nenhum formulário está na tela e leva ao cadastro.
 import { useEffect, useState } from "react";
-import { FORM } from "@/lib/copy";
+import { useCopy } from "./LocaleProvider";
 import { track } from "@/lib/analytics";
 
 export default function MobileCTA({ target = "#cadastro" }: { target?: string }) {
+  const { FORM } = useCopy();
   const [on, setOn] = useState(false);
   useEffect(() => {
     const forms = Array.from(document.querySelectorAll<HTMLElement>("form.panel"));

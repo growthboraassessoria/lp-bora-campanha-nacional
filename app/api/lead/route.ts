@@ -1,12 +1,14 @@
+// Cadastro na campanha, nos dois países. O país vem no corpo (`country: "US"`); sem ele, é o Brasil.
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/db";
-import { resolveCep } from "@/lib/cep";
-import { MESSAGES, cleanCpf, cleanPhone, parseBirthDate, titleCase, validateLead } from "@/lib/validation";
 import type { Sex } from "@/lib/db";
+import { cleanCpf, messagesFor, parseBirthDateFor, storedPhone, titleCase, validateLead } from "@/lib/validation";
 import { COOKIE_DAYS, LEAD_COOKIE, isValidCode, makeCode, signLeadId, utmFromTouch } from "@/lib/referral";
 import { getAttribution, getRequestMeta } from "@/lib/server/session";
+import { resolvePostal } from "@/lib/server/postal";
 import { unitBlocking } from "@/lib/geo/units";
-import { SITE, FORM, fill } from "@/lib/copy";
+import { getCopy, fill } from "@/lib/copy";
+import { LOCALES, localeOfLead, type Locale } from "@/lib/locale";
 
 export const runtime = "nodejs";
 
@@ -39,48 +41,58 @@ async function verifyTurnstile(token: string | undefined, ip: string | null) {
 
 export async function POST(req: Request) {
   const store = getStore();
-  if (store.kind === "none") return NextResponse.json({ ok: false, error: MESSAGES.unavailable }, { status: 503 });
-
   let body: Record<string, unknown>;
   try {
     body = (await req.json()) as Record<string, unknown>;
   } catch {
-    return NextResponse.json({ ok: false, error: MESSAGES.generic }, { status: 400 });
+    return NextResponse.json({ ok: false, error: messagesFor("br").generic }, { status: 400 });
   }
+  const locale: Locale = body.country === "US" ? "us" : "br";
+  const cfg = LOCALES[locale];
+  const M = messagesFor(locale);
+  if (store.kind === "none") return NextResponse.json({ ok: false, error: M.unavailable }, { status: 503 });
 
   // Campo-armadilha: robôs preenchem, pessoas não veem.
-  if (typeof body.website === "string" && body.website.trim()) return NextResponse.json({ ok: true, created: true, redirect: "/obrigado" });
+  if (typeof body.website === "string" && body.website.trim()) return NextResponse.json({ ok: true, created: true, redirect: cfg.routes.thanks });
 
   const meta = await getRequestMeta();
-  if (limited(meta.ip_hash ?? "anon")) return NextResponse.json({ ok: false, error: MESSAGES.generic }, { status: 429 });
+  if (limited(meta.ip_hash ?? "anon")) return NextResponse.json({ ok: false, error: M.generic }, { status: 429 });
 
-  const rawIp = meta.ip_hash ? null : null;
-  if (!(await verifyTurnstile(typeof body.turnstile === "string" ? body.turnstile : undefined, rawIp))) {
-    return NextResponse.json({ ok: false, error: MESSAGES.generic }, { status: 400 });
+  if (!(await verifyTurnstile(typeof body.turnstile === "string" ? body.turnstile : undefined, null))) {
+    return NextResponse.json({ ok: false, error: M.generic }, { status: 400 });
   }
 
   const fields = {
     first_name: titleCase(String(body.first_name ?? "")),
     last_name: titleCase(String(body.last_name ?? "")),
-    phone: cleanPhone(String(body.phone ?? "")),
+    phone: String(body.phone ?? ""),
     email: String(body.email ?? "").trim().toLowerCase(),
     cep: String(body.cep ?? "").replace(/\D/g, ""),
     sex: String(body.sex ?? "").trim().toUpperCase(),
     birth_date: String(body.birth_date ?? "").trim(),
-    cpf: cleanCpf(String(body.cpf ?? "")),
+    cpf: cfg.features.cpf ? cleanCpf(String(body.cpf ?? "")) : "",
     privacy_consent: body.privacy_consent === true,
-    marketing_consent: body.marketing_consent !== false,
+    // Brasil: o aceite único cobre o contato. EUA: mensagem de texto só com o aceite próprio marcado.
+    marketing_consent: locale === "us" ? body.marketing_consent === true : body.marketing_consent !== false,
   };
-  const errors = validateLead(fields);
+  const errors = validateLead(fields, locale);
   if (Object.keys(errors).length) return NextResponse.json({ ok: false, errors }, { status: 400 });
 
-  const cep = await resolveCep(fields.cep);
-  if (!cep) return NextResponse.json({ ok: false, errors: { cep: MESSAGES.cep } }, { status: 400 });
-  const unit = unitBlocking(cep.slug, cep.uf, fields.cep);
-  if (unit) return NextResponse.json({ ok: false, unit: { slug: unit.slug, city: unit.city, uf: unit.uf, url: unit.url ?? SITE.studentUrl }, error: fill(FORM.unit.title, { city: cep.city }) }, { status: 409 });
+  const place = await resolvePostal(locale, fields.cep);
+  if (!place) return NextResponse.json({ ok: false, errors: { cep: M.cep } }, { status: 400 });
+  if (cfg.features.units) {
+    const unit = unitBlocking(place.slug, place.uf, fields.cep);
+    if (unit) {
+      const { SITE, FORM } = getCopy(locale);
+      return NextResponse.json({ ok: false, unit: { slug: unit.slug, city: unit.city, uf: unit.uf, url: unit.url ?? SITE.studentUrl }, error: fill(FORM.unit.title, { city: place.city }) }, { status: 409 });
+    }
+  }
+
+  // A LP do Brasil usa o `site_id` padrão da coluna; as outras gravam o próprio.
+  const site_id = locale === "br" ? null : cfg.siteId;
 
   try {
-    await store.upsertCity({ slug: cep.slug, name: cep.city, uf: cep.uf, ibge: cep.ibge, lat: cep.lat, lng: cep.lng, approx_location: cep.approx });
+    await store.upsertCity({ slug: place.slug, name: place.city, uf: place.uf, ibge: place.ibge, lat: place.lat, lng: place.lng, approx_location: place.approx, state_name: place.stateName });
 
     const attr = await getAttribution();
     const bodyRef = typeof body.ref === "string" ? body.ref.toUpperCase() : null;
@@ -92,12 +104,13 @@ export async function POST(req: Request) {
 
     const { lead, created } = await store.createLead({
       ...fields,
+      phone: storedPhone(fields.phone, locale),
       sex: fields.sex as Sex,
-      birth_date: parseBirthDate(fields.birth_date),
-      cpf: fields.cpf,
-      city_slug: cep.slug,
-      city: cep.city,
-      state: cep.uf,
+      birth_date: parseBirthDateFor(fields.birth_date, locale),
+      cpf: fields.cpf || null,
+      city_slug: place.slug,
+      city: place.city,
+      state: place.uf,
       referral_code,
       referred_by,
       utm: utmFromTouch(attr.last ?? attr.first),
@@ -106,9 +119,10 @@ export async function POST(req: Request) {
       experiment: attr.experiment,
       ip_hash: meta.ip_hash,
       user_agent: meta.user_agent,
+      site_id,
     });
 
-    const common = { lead_id: lead.id, path: "/", utm: utmFromTouch(attr.last ?? attr.first), ip_hash: meta.ip_hash, user_agent: meta.user_agent };
+    const common = { lead_id: lead.id, path: cfg.routes.home, utm: utmFromTouch(attr.last ?? attr.first), ip_hash: meta.ip_hash, user_agent: meta.user_agent, site_id };
     if (created) {
       await store.recordEvent({ ...common, name: "form_completed", props: { city: lead.city, uf: lead.state, variant: attr.experiment.hero, referred: !!referred_by } });
       if (referred_by) await store.recordEvent({ ...common, name: "referred_signup", referral_code: referred_by, props: { city: lead.city } });
@@ -116,17 +130,18 @@ export async function POST(req: Request) {
       await store.recordEvent({ ...common, name: "form_existing", props: { city: lead.city } });
     }
 
+    // Quem já tinha cadastro (mesmo e-mail ou telefone) vai para a página do país onde se cadastrou primeiro.
     const res = NextResponse.json({
       ok: true,
       created,
-      redirect: "/obrigado",
-      message: created ? null : MESSAGES.existing,
+      redirect: LOCALES[localeOfLead(lead)].routes.thanks,
+      message: created ? null : M.existing,
       lead: { first_name: lead.first_name, city: lead.city, state: lead.state, city_slug: lead.city_slug, code: lead.referral_code, bora_number: lead.bora_number },
     });
     res.cookies.set(LEAD_COOKIE, signLeadId(lead.id), { httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production", path: "/", maxAge: COOKIE_DAYS * 24 * 60 * 60 });
     return res;
   } catch (e) {
     console.error("[lead]", e);
-    return NextResponse.json({ ok: false, error: MESSAGES.generic }, { status: 500 });
+    return NextResponse.json({ ok: false, error: M.generic }, { status: 500 });
   }
 }

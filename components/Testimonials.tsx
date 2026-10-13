@@ -4,13 +4,15 @@ import type { Testimonial } from "@/lib/db/types";
 import { useGsap } from "@/hooks/useGsap";
 import { revealSection } from "@/lib/motion";
 import Headline from "./Headline";
+import { useCopy } from "./LocaleProvider";
 
 export default function Testimonials({ items }: { items: Testimonial[] }) {
+  const { TESTIMONIALS } = useCopy();
   const ref = useGsap<HTMLElement>(({ scope, reduced }) => revealSection(scope, reduced));
   if (!items.length) return null;
   return (
     <section ref={ref} className="testimonials section container" aria-labelledby="t-title">
-      <Headline id="t-title" lines={["QUEM JÁ", "CORRE COM A BORA."]} size="m" />
+      <Headline id="t-title" lines={TESTIMONIALS.title} size="m" />
       <div className="testimonials__track" role="list">
         {items.map((t) => (
           <figure className="tcard" key={t.id} role="listitem" data-reveal>

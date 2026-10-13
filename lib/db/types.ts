@@ -1,4 +1,5 @@
 // Tipos do armazenamento da campanha. A implementação pode ser Supabase (produção) ou um arquivo local (desenvolvimento).
+import type { Locale } from "../locale";
 
 export type Utm = {
   source?: string | null;
@@ -16,6 +17,8 @@ export type City = {
   lat: number;
   lng: number;
   approx_location: boolean;
+  /** Nome do estado, usado só para criar a linha do estado quando a cidade é dos EUA. */
+  state_name?: string | null;
 };
 
 /** Sexo informado no cadastro: F, M ou N (prefiro não dizer). */
@@ -54,7 +57,7 @@ export type Lead = {
   created_at: string;
 };
 
-export type NewLeadInput = Omit<Lead, "id" | "created_at" | "bora_number" | "external_ids" | "phone2" | "instagram" | "bio" | "photo_url" | "public_profile" | "public_whatsapp"> & { ip_hash?: string | null; user_agent?: string | null };
+export type NewLeadInput = Omit<Lead, "id" | "created_at" | "bora_number" | "external_ids" | "phone2" | "instagram" | "bio" | "photo_url" | "public_profile" | "public_whatsapp"> & { ip_hash?: string | null; user_agent?: string | null; site_id?: string | null };
 
 /** O que a pessoa pode mudar na área do membro. */
 export type ProfilePatch = Partial<Pick<Lead, "first_name" | "last_name" | "phone" | "phone2" | "email" | "instagram" | "bio" | "photo_url" | "public_profile" | "public_whatsapp" | "cep" | "city_slug" | "city" | "state">>;
@@ -100,6 +103,8 @@ export type EventInput = {
   session_id?: string | null;
   ip_hash?: string | null;
   user_agent?: string | null;
+  /** Só enviado quando não é a LP do Brasil (o padrão da coluna). */
+  site_id?: string | null;
 };
 
 export type ReferralClickInput = {
@@ -108,6 +113,7 @@ export type ReferralClickInput = {
   ip_hash?: string | null;
   user_agent?: string | null;
   utm?: Utm;
+  site_id?: string | null;
 };
 
 export type Testimonial = { id: string; name: string; city: string; text: string; photo_url: string | null };
@@ -121,6 +127,8 @@ export interface Store {
   getLeadById(id: string): Promise<Lead | null>;
   getLeadByCode(code: string): Promise<Lead | null>;
   getLeadByCpf(cpf: string): Promise<Lead | null>;
+  /** Pelo telefone como é guardado (E.164 nos EUA). */
+  getLeadByPhone(phone: string): Promise<Lead | null>;
   updateLead(id: string, patch: ProfilePatch): Promise<Lead>;
   touchLogin(id: string): Promise<void>;
   savePhoto(leadId: string, data: Buffer, contentType: string): Promise<string>;
@@ -128,8 +136,10 @@ export interface Store {
   codeExists(code: string): Promise<boolean>;
   recordReferralClick(input: ReferralClickInput): Promise<void>;
   recordEvent(input: EventInput): Promise<void>;
-  nationalStats(): Promise<NationalStats>;
-  ranking(opts?: { limit?: number; uf?: string }): Promise<RankingRow[]>;
+  /** Totais de um país (padrão: Brasil). */
+  nationalStats(country?: Locale): Promise<NationalStats>;
+  /** Ranking de cidades de um país (padrão: Brasil). */
+  ranking(opts?: { limit?: number; uf?: string; country?: Locale }): Promise<RankingRow[]>;
   cityStat(slug: string): Promise<RankingRow | null>;
   getCity(slug: string): Promise<City | null>;
   stateGroupUrl(uf: string): Promise<string | null>;

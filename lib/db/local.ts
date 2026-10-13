@@ -5,6 +5,9 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { CITY_GOAL, FOUNDER_SLOTS } from "./types";
+import { isUsSlug, localeOfSlug, type Locale } from "../locale";
+
+const normPhone = (p: string) => (p.trim().startsWith("+") ? "+" : "") + p.replace(/\D/g, "");
 import type { City, EventInput, Lead, NationalStats, NewLeadInput, PublicMember, RankingRow, ReferralClickInput, Store, Testimonial } from "./types";
 
 type Data = {
@@ -52,13 +55,13 @@ function write<T>(mutate: (d: Data) => T | Promise<T>): Promise<T> {
   return run;
 }
 
-function rows(d: Data, uf?: string): RankingRow[] {
+function rows(d: Data, uf?: string, country: Locale = "br"): RankingRow[] {
   const byCity = new Map<string, number>();
   for (const l of d.leads) byCity.set(l.city_slug, (byCity.get(l.city_slug) ?? 0) + 1);
   const founders = new Map<string, number>();
   for (const f of d.founders) if (f.status === "active") founders.set(f.city_slug, (founders.get(f.city_slug) ?? 0) + 1);
   return d.cities
-    .filter((c) => (byCity.get(c.slug) ?? 0) > 0 && (!uf || c.uf === uf))
+    .filter((c) => (byCity.get(c.slug) ?? 0) > 0 && (!uf || c.uf === uf) && isUsSlug(c.slug) === (country === "us"))
     .map((c) => {
       const leads = byCity.get(c.slug) ?? 0;
       const f = founders.get(c.slug) ?? 0;
@@ -73,13 +76,14 @@ export const localStore: Store = {
   async upsertCity(city) {
     await write((d) => {
       const i = d.cities.findIndex((c) => c.slug === city.slug);
-      if (i >= 0) d.cities[i] = { ...d.cities[i], ...city, approx_location: d.cities[i].approx_location && city.approx_location };
-      else d.cities.push(city);
+      const { state_name: _s, ...row } = city;
+      if (i >= 0) d.cities[i] = { ...d.cities[i], ...row, approx_location: d.cities[i].approx_location && row.approx_location };
+      else d.cities.push(row);
     });
     return city;
   },
   async createLead(input) {
-    const phone = input.phone.replace(/\D/g, "");
+    const phone = normPhone(input.phone);
     const email = input.email.trim().toLowerCase();
     return write((d) => {
       const cpf = input.cpf ? input.cpf.replace(/\D/g, "") : null;
@@ -102,6 +106,10 @@ export const localStore: Store = {
   },
   async getLeadByCpf(cpf) {
     return (await read()).leads.find((l) => l.cpf === cpf) ?? null;
+  },
+  async getLeadByPhone(phone) {
+    const p = normPhone(phone);
+    return (await read()).leads.find((l) => l.phone === p) ?? null;
   },
   async updateLead(id, patch) {
     return write((d) => {
@@ -138,16 +146,16 @@ export const localStore: Store = {
       if (d.events.length > 20000) d.events.splice(0, d.events.length - 20000);
     });
   },
-  async nationalStats(): Promise<NationalStats> {
-    const d = await read();
-    return { leads: d.leads.length, cities: new Set(d.leads.map((l) => l.city_slug)).size, states: new Set(d.leads.map((l) => l.state)).size };
+  async nationalStats(country = "br"): Promise<NationalStats> {
+    const r = rows(await read(), undefined, country);
+    return { leads: r.reduce((n, x) => n + x.leads, 0), cities: r.length, states: new Set(r.map((x) => x.uf)).size };
   },
   async ranking(opts = {}) {
-    const r = rows(await read(), opts.uf);
+    const r = rows(await read(), opts.uf, opts.country ?? "br");
     return opts.limit ? r.slice(0, opts.limit) : r;
   },
   async cityStat(slug) {
-    return rows(await read()).find((r) => r.slug === slug) ?? null;
+    return rows(await read(), undefined, localeOfSlug(slug)).find((r) => r.slug === slug) ?? null;
   },
   async getCity(slug) {
     return (await read()).cities.find((c) => c.slug === slug) ?? null;

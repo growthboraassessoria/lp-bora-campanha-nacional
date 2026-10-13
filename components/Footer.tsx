@@ -1,13 +1,15 @@
 import Link from "next/link";
-import { FOOTER } from "@/lib/copy";
+import { getCopy, fill } from "@/lib/copy";
+import type { Locale } from "@/lib/locale";
 
-export default function Footer() {
+export default function Footer({ locale = "br" }: { locale?: Locale }) {
+  const { FOOTER } = getCopy(locale);
   return (
     <footer className="footer">
       <img className="footer__letz" src="/brand/sticker-letz-bora-green.webp" alt={FOOTER.letz} width={720} height={336} loading="lazy" />
       <div className="footer__row">
         <img className="footer__logo" src="/brand/logo-black.png" alt="BORA" width={1200} height={307} loading="lazy" />
-        <nav className="footer__links" aria-label="Rodapé">
+        <nav className="footer__links" aria-label={FOOTER.navAria}>
           {FOOTER.links.map((l) =>
             l.external ? (
               <a key={l.label} href={l.href} target="_blank" rel="noopener">{l.label}</a>
@@ -26,9 +28,7 @@ export default function Footer() {
             </a>
           ))}
         </address>
-        <p className="footer__legal">
-          {FOOTER.company} · CNPJ {FOOTER.cnpj} · {new Date().getFullYear()} · {FOOTER.tagline}
-        </p>
+        <p className="footer__legal">{fill(FOOTER.legal, { year: new Date().getFullYear() })}</p>
       </div>
     </footer>
   );

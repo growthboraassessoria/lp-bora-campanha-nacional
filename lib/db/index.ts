@@ -16,6 +16,7 @@ const noneStore: Store = {
   async getLeadByCode() { return null; },
   async codeExists() { return false; },
   async getLeadByCpf() { return null; },
+  async getLeadByPhone() { return null; },
   async updateLead() { throw new Error("Armazenamento não configurado."); },
   async touchLogin() {},
   async savePhoto() { throw new Error("Armazenamento não configurado."); },

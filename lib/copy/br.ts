@@ -1,5 +1,6 @@
-// Todo o texto público da campanha. Nenhum texto visível fica dentro de componente.
+// Todo o texto público da campanha em português (Brasil). Nenhum texto visível fica dentro de componente.
 // Tom: direto, positivo, brasileiro, jovem. Sempre "BORA", nunca "BORA Assessoria" no corpo.
+// A versão em inglês (EUA) fica em ./us.ts, com exatamente as mesmas chaves.
 
 export const SITE = {
   name: "BORA, Vamos em Frente",
@@ -7,6 +8,29 @@ export const SITE = {
   studentUrl: "https://boraassessoria.com/",
   instagram: "https://www.instagram.com/bora.assessoria/",
   areaLabel: "Minha área",
+  studentLabel: "Já sou aluno BORA",
+  homeAria: "BORA · início",
+  navAria: "Atalhos",
+};
+
+export const META = {
+  title: "BORA na sua cidade · BORA, Vamos em Frente",
+  template: "%s · BORA, Vamos em Frente",
+  ogTitle: "BORA na sua cidade.",
+  ogLines: ["BORA", "NA SUA", "CIDADE."],
+  ogTag: "VAMOS EM FRENTE",
+  ogFoot: "Uma assessoria para todos.",
+  thanks: "Você está dentro",
+  me: "Minha área",
+  login: "Entrar na minha área",
+  ranking: "Onde a BORA vai chegar primeiro?",
+  cityFallback: "Cidade",
+  cityTitle: "BORA {city}",
+  cityDesc: "Quantas pessoas já querem a BORA em {city}, {uf}. Coloque sua cidade no mapa.",
+};
+
+export const MAP = {
+  aria: "Mapa do Brasil com as cidades que já pediram a BORA",
 };
 
 export const HERO = {
@@ -43,7 +67,7 @@ export const FORM = {
   yourCity: "Sua cidade:",
   approxNote: "Localização aproximada no mapa.",
   fields: { first_name: "Nome", last_name: "Sobrenome", phone: "WhatsApp", email: "E-mail", cpf: "CPF", birth_date: "Data de nascimento", sex: "Sexo" },
-  placeholders: { cpf: "000.000.000-00", birth_date: "DD/MM/AAAA" },
+  placeholders: { cpf: "000.000.000-00", birth_date: "DD/MM/AAAA", phone: "" },
   cpfHelp: "Garante um cadastro único por pessoa. É ele que gera o seu BORA ID.",
   sexOptions: [
     { value: "F", label: "Feminino" },
@@ -51,6 +75,10 @@ export const FORM = {
     { value: "N", label: "Prefiro não dizer" },
   ],
   consent: "Aceito o aviso de privacidade e quero receber contato da BORA por WhatsApp e e-mail.",
+  consentLink: "aviso de privacidade",
+  /** Aceite separado para mensagens de texto. Só existe nos EUA (exigência da TCPA); no Brasil o aceite é um só. */
+  smsConsent: null as string | null,
+  cityFallback: "sua cidade",
   cta: "QUERO A BORA NA MINHA CIDADE",
   sending: "COLOCANDO NO MAPA…",
   micro: "Leva 30 segundos. Sem cobrança.",
@@ -66,6 +94,7 @@ export const FORM = {
 };
 
 export const PROOF = {
+  aria: "Quem já entrou no movimento",
   people: "PESSOAS",
   cities: "CIDADES",
   states: "ESTADOS",
@@ -85,6 +114,8 @@ export const HOW = {
 
 export const RANKING = {
   title: ["ONDE A BORA", "VAI CHEGAR PRIMEIRO?"],
+  aria: "Ranking de cidades",
+  pctAria: "{pct}% da meta de {goal}",
   goalLabel: "Meta inicial: 500 pessoas por cidade.",
   people: "pessoas",
   founder: "vagas Founder",
@@ -106,6 +137,7 @@ export const SIGNALS = {
 export const MANIFESTO = {
   lines: ["O BRASIL CORRE.", "O BRASIL TREINA.", "O BRASIL COMEÇA.", "O BRASIL CONTINUA.", "AGORA, O BRASIL PEDE BORA."],
   final: "BORA, VAMOS EM FRENTE.",
+  aria: "O Brasil pede BORA",
 };
 
 export const FOUNDING = {
@@ -128,7 +160,17 @@ export const ABOUT = {
     { title: "DO PRIMEIRO TROTE À LINHA DE CHEGADA", text: "Você não precisa estar pronto. Só precisa começar." },
   ],
   distances: ["5K", "10K", "21K", "42K", "TRIATHLON"],
+  distancesAria: "Do 5K ao triathlon",
+  photoAlt: "Comunidade BORA reunida depois de um treino",
+  /** Linha extra de contexto abaixo dos pilares. Só nos EUA, para explicar de onde vem a BORA. */
+  note: null as string | null,
 };
+
+export const TESTIMONIALS = {
+  title: ["QUEM JÁ", "CORRE COM A BORA."],
+};
+
+export const FAQ_TITLE = ["PERGUNTAS", "FREQUENTES."];
 
 export const FAQ = [
   { q: "Quanto custa entrar no movimento?", a: "Nada. O cadastro é gratuito e não gera cobrança." },
@@ -166,9 +208,11 @@ export const FOOTER = {
     { label: "Termos", href: "/termos" },
   ],
   letz: "LETZ BORAAA!!",
+  navAria: "Rodapé",
   company: "Bora Assessoria LTDA",
   cnpj: "54.366.041/0001-25",
   tagline: "Uma assessoria para todos.",
+  legal: "Bora Assessoria LTDA · CNPJ 54.366.041/0001-25 · {year} · Uma assessoria para todos.",
   contactLabel: "CONTATO",
   contact: [
     { label: "comercial@boraassessoria.com", href: "mailto:comercial@boraassessoria.com" },
@@ -189,7 +233,7 @@ export const THANKS = {
     title: ["AJUDE SUA CIDADE", "A SUBIR NO RANKING."],
     text: "Cada pessoa que entra pelo seu link conta para {city} e para você.",
     label: "SEU LINK PESSOAL",
-    whatsapp: "COMPARTILHAR NO WHATSAPP",
+    primary: "COMPARTILHAR NO WHATSAPP",
     copy: "COPIAR LINK",
     copied: "LINK COPIADO",
     story: "CRIAR STORY",
@@ -203,7 +247,10 @@ export const THANKS = {
     campaign: "BORA, VAMOS EM FRENTE",
     save: "SALVAR CARTEIRINHA",
     saveHint: "Abre como imagem para guardar no celular e postar.",
+    aria: "Carteirinha BORA {id}",
+    qrAria: "QR code do link {link}",
   },
+  progressAria: "Progresso de {city}",
   area: { text: "Sua área fica sempre aberta: foto, dados, perfil público e o desempenho das suas indicações. Para voltar depois, entre com o CPF e a data de nascimento.", cta: "ABRIR MINHA ÁREA" },
   founder: { eyebrow: "QUER COMEÇAR AGORA?", title: "FOUNDING 50", slots: "{n} vagas restantes em {city}.", none: "As 50 vagas de {city} já foram preenchidas.", cta: "CONHECER O PROGRAMA FUNDADOR" },
   qualification: {
@@ -235,7 +282,8 @@ export const LOGIN = {
   eyebrow: "ÁREA DO MEMBRO",
   title: ["ENTRE COM SEU", "BORA ID."],
   text: "Use o CPF do cadastro e confirme sua data de nascimento.",
-  cpf: "CPF",
+  id: "CPF",
+  micro: "Sem cobrança.",
   birth: "Data de nascimento",
   cta: "ENTRAR",
   sending: "ENTRANDO…",
@@ -290,7 +338,7 @@ export const MEMBERS = {
   emptyCta: "Entre na sua área e seja a primeira pessoa a aparecer aqui.",
   enter: "ENTRAR NA MINHA ÁREA",
   instagram: "INSTAGRAM",
-  whatsapp: "WHATSAPP",
+  contact: "WHATSAPP",
   message: "Oi, {name}! Vi seu perfil na página da BORA em {city} e quero me conectar.",
   since: "desde {date}",
 };
@@ -308,6 +356,31 @@ export const CITY_PAGE = {
   rankState: "em {uf}",
   unknownTitle: ["ESSA CIDADE", "AINDA NÃO ESTÁ NO MAPA."],
   unknownText: "Seja a primeira pessoa a colocar ela lá.",
+  hint: "Você está em {city}? Confirme com o seu CEP.",
+  group: "Grupo BORA {uf}",
+  rankIn: "#{n} {where}",
+};
+
+/** Textos das imagens geradas no servidor: story do Instagram e carteirinha em PNG. */
+export const IMAGES = {
+  tag: "VAMOS EM FRENTE",
+  story: {
+    ranked: "ESTÁ EM",
+    entered: "ENTROU NO MAPA",
+    want: "QUERO A BORA AQUI.",
+    myId: "MEU BORA ID",
+    people: "{n} PESSOAS · META {goal}",
+    person: "1 PESSOA · META {goal}",
+    goal: "META {goal}",
+    scan: "APONTE A CÂMERA PARA ENTRAR",
+    notFound: "Não encontrado",
+  },
+  card: {
+    title: "MINHA CARTEIRINHA BORA.",
+    since: "MEMBRO DESDE {date} · {code}",
+    scan: "APONTE A CÂMERA PARA O QR E ENTRE PELO MEU LINK.",
+    unauthorized: "Faça seu cadastro para gerar a carteirinha.",
+  },
 };
 
 export const FOUNDER_PAGE = {
@@ -324,7 +397,3 @@ export const FOUNDER_PAGE = {
   rules: "Regras de cancelamento, renovação e o que acontece quando a BORA abrir a operação presencial na sua cidade ficam na página de termos.",
   slots: "{n} vagas restantes em {city}.",
 };
-
-export function fill(template: string, vars: Record<string, string | number>) {
-  return template.replace(/\{(\w+)\}/g, (_, k) => String(vars[k] ?? ""));
-}

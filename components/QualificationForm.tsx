@@ -1,13 +1,14 @@
 "use client";
 // Qualificação opcional, em duas telas. Nada bloqueia; cada resposta vira dado para a chegada na cidade.
 import { useState } from "react";
-import { THANKS } from "@/lib/copy";
 import { track } from "@/lib/analytics";
 import Headline from "./Headline";
+import { useCopy } from "./LocaleProvider";
 
 type Q = { key: string; label: string; options?: readonly string[]; type?: string };
 
 export default function QualificationForm() {
+  const { THANKS } = useCopy();
   const steps = THANKS.qualification.steps as unknown as readonly (readonly Q[])[];
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});

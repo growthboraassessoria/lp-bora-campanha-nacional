@@ -1,13 +1,14 @@
 "use client";
 // O que é a BORA: fotografia real da comunidade num bloco grande, tipografia e três pilares numerados. Página branca.
 import Image from "next/image";
-import { ABOUT } from "@/lib/copy";
 import { useGsap } from "@/hooks/useGsap";
 import { gsap, MOTION_OK } from "@/lib/gsap";
 import { revealSection } from "@/lib/motion";
 import Headline from "./Headline";
+import { useCopy } from "./LocaleProvider";
 
 export default function AboutBora() {
+  const { ABOUT } = useCopy();
   const ref = useGsap<HTMLElement>(({ scope, q, reduced, mm }) => {
     revealSection(scope, reduced);
     mm.add(MOTION_OK, () => {
@@ -19,7 +20,7 @@ export default function AboutBora() {
     <section ref={ref} className="about section container" aria-labelledby="about-title">
       <div className="about__grid">
         <div className="about__photo" data-reveal>
-          <Image src="/brand/bora-comunidade-1600.webp" alt="Comunidade BORA reunida depois de um treino" fill sizes="(min-width: 900px) 46vw, 100vw" />
+          <Image src="/brand/bora-comunidade-1600.webp" alt={ABOUT.photoAlt} fill sizes="(min-width: 900px) 46vw, 100vw" />
         </div>
         <div>
           <Headline id="about-title" lines={ABOUT.title} size="m" className="about__title" />
@@ -33,7 +34,8 @@ export default function AboutBora() {
               </li>
             ))}
           </ol>
-          <div className="about__distances" data-reveal aria-label="Do 5K ao triathlon">
+          {ABOUT.note ? <p className="about__note" data-reveal>{ABOUT.note}</p> : null}
+          <div className="about__distances" data-reveal aria-label={ABOUT.distancesAria}>
             <img src="/brand/icon-corrida-black.png" alt="" width={240} height={260} loading="lazy" />
             {ABOUT.distances.map((d) => (
               <span key={d}>{d}</span>

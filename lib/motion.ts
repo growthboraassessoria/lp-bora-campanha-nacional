@@ -20,7 +20,9 @@ export function revealSection(scope: HTMLElement, reduced: boolean, opts: Opts =
 /** Conta de zero até o valor do atributo data-count quando entra na tela. */
 export function countUp(el: HTMLElement, reduced: boolean, trigger?: Element) {
   const target = Number(el.dataset.count ?? "0");
-  const fmt = (n: number) => Math.round(n).toLocaleString("pt-BR");
+  // O separador de milhar segue o idioma da página (pt-BR no Brasil, en-US em /us).
+  const lang = typeof document !== "undefined" ? document.documentElement.lang || "pt-BR" : "pt-BR";
+  const fmt = (n: number) => Math.round(n).toLocaleString(lang);
   if (reduced || !target) {
     el.textContent = fmt(target);
     return;

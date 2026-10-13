@@ -1,15 +1,19 @@
 "use client";
 // O início do growth loop: link pessoal, WhatsApp com mensagem pronta, copiar e story dinâmico.
 import { useState } from "react";
-import { THANKS, fill } from "@/lib/copy";
+import { fill } from "@/lib/copy";
+import { useCopy, useLocale } from "./LocaleProvider";
 import { track } from "@/lib/analytics";
 
 type Props = { code: string; city: string; shortLink: string; fullLink: string };
 
 export default function SharePanel({ code, city, shortLink, fullLink }: Props) {
+  const { THANKS } = useCopy();
+  const locale = useLocale();
   const [copied, setCopied] = useState(false);
   const message = fill(THANKS.share.message, { city, link: fullLink });
-  const wa = `https://wa.me/?text=${encodeURIComponent(message)}`;
+  // Brasil: WhatsApp. EUA: mensagem de texto do próprio celular.
+  const primaryHref = locale === "us" ? `sms:?&body=${encodeURIComponent(message)}` : `https://wa.me/?text=${encodeURIComponent(message)}`;
 
   async function copy() {
     try {
@@ -35,8 +39,8 @@ export default function SharePanel({ code, city, shortLink, fullLink }: Props) {
         <span id="share-link-text">{shortLink}</span>
       </div>
       <div className="share__btns" style={{ marginTop: 16 }}>
-        <a className="btn btn--green" href={wa} target="_blank" rel="noopener" onClick={() => track("share_whatsapp", { code })}>
-          {THANKS.share.whatsapp}
+        <a className="btn btn--green" href={primaryHref} target={locale === "us" ? undefined : "_blank"} rel="noopener" onClick={() => track(locale === "us" ? "share_sms" : "share_whatsapp", { code })}>
+          {THANKS.share.primary}
         </a>
         <button type="button" className="btn btn--outline" onClick={copy} aria-live="polite">
           {copied ? THANKS.share.copied : THANKS.share.copy}

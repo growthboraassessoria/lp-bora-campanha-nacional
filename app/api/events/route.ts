@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getStore } from "@/lib/db";
 import { utmFromTouch } from "@/lib/referral";
 import { getAttribution, getCurrentLead, getRequestMeta } from "@/lib/server/session";
+import { LOCALES, localeOfPath } from "@/lib/locale";
 
 export const runtime = "nodejs";
 
@@ -24,6 +25,8 @@ export async function POST(req: Request) {
       lead_id: lead?.id ?? null,
       props,
       path: typeof body.path === "string" ? body.path.slice(0, 200) : null,
+      // Eventos das páginas de /us ficam no site dos EUA; os outros usam o padrão da coluna (Brasil).
+      site_id: localeOfPath(typeof body.path === "string" ? body.path : null) === "us" ? LOCALES.us.siteId : null,
       referral_code: attr.ref,
       utm: utmFromTouch(attr.last ?? attr.first),
       session_id: typeof body.session_id === "string" ? body.session_id.slice(0, 64) : null,

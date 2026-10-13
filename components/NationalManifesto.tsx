@@ -2,12 +2,13 @@
 // Momento nacional: o mapa gigante fixo e as frases passando sobre o território, controladas pelo scroll (desktop).
 // No celular e com movimento reduzido, as frases ficam empilhadas, sem fixar a tela.
 import { useState } from "react";
-import { MANIFESTO } from "@/lib/copy";
 import { useGsap } from "@/hooks/useGsap";
 import { gsap, DESKTOP, MOTION_OK, REDUCED } from "@/lib/gsap";
 import BrazilMap, { type MapCity } from "./BrazilMap";
+import { useCopy } from "./LocaleProvider";
 
 export default function NationalManifesto({ cities }: { cities: MapCity[] }) {
+  const { MANIFESTO } = useCopy();
   const [flow, setFlow] = useState(false);
   const ref = useGsap<HTMLElement>(({ scope, q, mm }) => {
     mm.add(`${DESKTOP} and ${MOTION_OK}`, () => {
@@ -32,7 +33,7 @@ export default function NationalManifesto({ cities }: { cities: MapCity[] }) {
   });
 
   return (
-    <section ref={ref} className={`manifesto${flow ? " manifesto--flow" : ""}`} aria-label="O Brasil pede BORA">
+    <section ref={ref} className={`manifesto${flow ? " manifesto--flow" : ""}`} aria-label={MANIFESTO.aria}>
       <div className="manifesto__stage">
         <div className="manifesto__map" aria-hidden="true">
           <BrazilMap cities={cities} labels={10} patternOpacity={0.08} showUf />

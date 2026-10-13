@@ -1,13 +1,16 @@
 "use client";
-// O painel de cadastro: CEP primeiro, cidade confirmada em letras grandes, depois os dados. Cadastro em ~30 segundos.
-import { useEffect, useRef, useState, type FormEvent } from "react";
+// O painel de cadastro: código postal primeiro, cidade confirmada em letras grandes, depois os dados. Cadastro em ~30 segundos.
+// Brasil: CEP, WhatsApp, CPF e um aceite. EUA: ZIP code, celular, sem CPF, e o aceite de mensagens de texto à parte.
+import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { FORM, SITE, fill } from "@/lib/copy";
+import { fill } from "@/lib/copy";
+import { ufLabel } from "@/lib/locale";
 import { unitBlocking, type Unit } from "@/lib/geo/units";
-import { MESSAGES, formatCep, formatCpf, formatDateInput, formatPhone, validateLead, type FieldErrors } from "@/lib/validation";
+import { formatCpf, formatDateInput, formatPhoneFor, formatPostal, messagesFor, validateLead, type FieldErrors } from "@/lib/validation";
 import { track } from "@/lib/analytics";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/hooks/useGsap";
+import { useConfig, useCopy } from "./LocaleProvider";
 
 export type ResolvedCity = { city: string; uf: string; slug: string; lat: number; lng: number; approx: boolean };
 type Step = "cep" | "confirm" | "details" | "unit";
@@ -30,16 +33,12 @@ const TURNSTILE = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 type TextKey = "first_name" | "last_name" | "phone" | "email" | "cpf" | "birth_date";
 type TextField = { k: TextKey; type: "text" | "tel" | "email"; mode: "text" | "tel" | "email" | "numeric"; ac: string; placeholder?: string; max?: number; help?: string };
-const TEXT_FIELDS: TextField[] = [
-  { k: "first_name", type: "text", mode: "text", ac: "given-name" },
-  { k: "last_name", type: "text", mode: "text", ac: "family-name" },
-  { k: "phone", type: "tel", mode: "tel", ac: "tel-national" },
-  { k: "email", type: "email", mode: "email", ac: "email" },
-  { k: "cpf", type: "text", mode: "numeric", ac: "off", placeholder: FORM.placeholders.cpf, max: 14, help: FORM.cpfHelp },
-  { k: "birth_date", type: "text", mode: "numeric", ac: "bday", placeholder: FORM.placeholders.birth_date, max: 10 },
-];
 
 export default function LeadForm({ id = "cadastro", variant = "hero", onCity, onPlaced, cityHint }: Props) {
+  const { FORM, SITE } = useCopy();
+  const cfg = useConfig();
+  const locale = cfg.locale;
+  const M = messagesFor(locale);
   const [step, setStep] = useState<Step>("cep");
   const [cep, setCep] = useState("");
   const [cepStatus, setCepStatus] = useState<"idle" | "loading" | "error">("idle");
@@ -47,6 +46,7 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
   const [unit, setUnit] = useState<Unit | null>(null);
   const [fields, setFields] = useState({ first_name: "", last_name: "", phone: "", email: "", cpf: "", birth_date: "", sex: "" });
   const [consent, setConsent] = useState(false);
+  const [sms, setSms] = useState(false);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [sending, setSending] = useState(false);
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
@@ -57,6 +57,18 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
   const cepRef = useRef<HTMLInputElement>(null);
   const turnstileRef = useRef<HTMLDivElement>(null);
   const lastCep = useRef("");
+
+  const textFields = useMemo<TextField[]>(() => {
+    const list: TextField[] = [
+      { k: "first_name", type: "text", mode: "text", ac: "given-name" },
+      { k: "last_name", type: "text", mode: "text", ac: "family-name" },
+      { k: "phone", type: "tel", mode: "tel", ac: "tel-national", placeholder: FORM.placeholders.phone || undefined, max: locale === "us" ? 14 : 15 },
+      { k: "email", type: "email", mode: "email", ac: "email" },
+    ];
+    if (cfg.features.cpf) list.push({ k: "cpf", type: "text", mode: "numeric", ac: "off", placeholder: FORM.placeholders.cpf, max: 14, help: FORM.cpfHelp });
+    list.push({ k: "birth_date", type: "text", mode: "numeric", ac: "bday", placeholder: FORM.placeholders.birth_date, max: 10 });
+    return list;
+  }, [FORM, cfg.features.cpf, locale]);
 
   // Cada passo entra com leve subida.
   useEffect(() => {
@@ -93,7 +105,7 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
     setCepStatus("loading");
     setErrors((e) => ({ ...e, cep: undefined }));
     try {
-      const r = await fetch(`/api/cep?cep=${digits}`);
+      const r = await fetch(`${cfg.postal.api}?${cfg.postal.param}=${digits}`);
       if (!r.ok) throw new Error("not_found");
       const d = (await r.json()) as ResolvedCity & { ok: boolean };
       const resolved: ResolvedCity = { city: d.city, uf: d.uf, slug: d.slug, lat: d.lat, lng: d.lng, approx: d.approx };
@@ -101,7 +113,8 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
       setCepStatus("idle");
       onCity?.(resolved);
       track("cep_resolved", { uf: d.uf, city: d.city, approx: d.approx, variant });
-      const u = unitBlocking(d.slug, d.uf, digits);
+      // Praça onde a BORA já está (só no Brasil): em vez do cadastro, o caminho é o site.
+      const u = cfg.features.units ? unitBlocking(d.slug, d.uf, digits) : null;
       if (u) {
         setUnit(u);
         setStep("unit");
@@ -112,7 +125,7 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
       }
     } catch {
       setCepStatus("error");
-      setErrors((e) => ({ ...e, cep: MESSAGES.cep }));
+      setErrors((e) => ({ ...e, cep: M.cep }));
       lastCep.current = "";
     }
   }
@@ -122,11 +135,11 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
       started.current = true;
       track("form_started", { variant });
     }
-    const f = formatCep(v);
+    const f = formatPostal(v, locale);
     setCep(f);
     setCepStatus("idle");
     const digits = f.replace(/\D/g, "");
-    if (digits.length === 8) resolve(digits);
+    if (digits.length === cfg.postal.digits) resolve(digits);
   }
 
   function confirmCity() {
@@ -150,17 +163,19 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
     const form = e.currentTarget;
     const payload = {
       ...fields,
+      country: cfg.country,
       cep: cep.replace(/\D/g, ""),
       cpf: fields.cpf.replace(/\D/g, ""),
       birth_date: fields.birth_date,
       sex: fields.sex,
       privacy_consent: consent,
-      marketing_consent: consent,
+      // No Brasil o aceite é um só; nos EUA as mensagens de texto têm aceite próprio e opcional.
+      marketing_consent: FORM.smsConsent ? sms : consent,
       website: (form.elements.namedItem("website") as HTMLInputElement | null)?.value ?? "",
       turnstile: turnstileToken,
       variant,
     };
-    const errs = validateLead({ ...payload, phone: fields.phone });
+    const errs = validateLead({ ...payload, phone: fields.phone }, locale);
     setErrors(errs);
     if (Object.keys(errs).length) return;
     setSending(true);
@@ -170,22 +185,24 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
       const d = (await r.json()) as { ok: boolean; created?: boolean; redirect?: string; message?: string | null; errors?: FieldErrors; error?: string };
       if (!d.ok) {
         if (d.errors) setErrors(d.errors);
-        setMsg({ kind: "err", text: d.error ?? MESSAGES.generic });
+        setMsg({ kind: "err", text: d.error ?? M.generic });
         setSending(false);
         return;
       }
       if (city) onPlaced?.(city);
-      setMsg({ kind: "ok", text: d.created ? fill(FORM.placedLine, { city: city?.city ?? "sua cidade" }) : FORM.existing });
+      setMsg({ kind: "ok", text: d.created ? fill(FORM.placedLine, { city: city?.city ?? FORM.cityFallback }) : FORM.existing });
       track(d.created ? "form_completed_client" : "form_existing_client", { uf: city?.uf, variant });
-      setTimeout(() => window.location.assign(d.redirect ?? "/obrigado"), d.created ? 900 : 1400);
+      setTimeout(() => window.location.assign(d.redirect ?? cfg.routes.thanks), d.created ? 900 : 1400);
     } catch {
-      setMsg({ kind: "err", text: MESSAGES.generic });
+      setMsg({ kind: "err", text: M.generic });
       setSending(false);
     }
   }
 
   const set = (k: keyof typeof fields) => (v: string) =>
-    setFields((f) => ({ ...f, [k]: k === "phone" ? formatPhone(v) : k === "cpf" ? formatCpf(v) : k === "birth_date" ? formatDateInput(v) : v }));
+    setFields((f) => ({ ...f, [k]: k === "phone" ? formatPhoneFor(v, locale) : k === "cpf" ? formatCpf(v) : k === "birth_date" ? formatDateInput(v) : v }));
+
+  const [consentBefore, consentAfter] = FORM.consent.split(FORM.consentLink);
 
   return (
     <form id={id} className="panel" onSubmit={submit} noValidate aria-live="polite">
@@ -205,7 +222,7 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
               autoComplete="postal-code"
               placeholder={FORM.cepPlaceholder}
               value={cep}
-              maxLength={9}
+              maxLength={cfg.postal.maxLength}
               onChange={(e) => onCepChange(e.target.value)}
               aria-invalid={!!errors.cep}
               aria-describedby={`${id}-cep-status`}
@@ -239,7 +256,7 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
             <p className="confirm__q" data-step-item>{FORM.confirmQuestion}</p>
             <div className="confirm__city" data-step-item>
               <span className="confirm__name">{city.city}</span>
-              <span className="confirm__uf">{city.uf}</span>
+              <span className="confirm__uf">{ufLabel(city.uf)}</span>
             </div>
             {city.approx ? <p className="confirm__approx" data-step-item>{FORM.approxNote}</p> : null}
             <div className="confirm__actions" data-step-item>
@@ -259,13 +276,13 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
               <span>
                 <span className="muted">{FORM.yourCity} </span>
                 <b>
-                  {city.city} · {city.uf}
+                  {city.city} · {ufLabel(city.uf)}
                 </b>
               </span>
               <button type="button" onClick={fixCity}>{FORM.confirmFix}</button>
             </div>
             <div className="fields">
-              {TEXT_FIELDS.map((f, i) => (
+              {textFields.map((f, i) => (
                 <div className="field" key={f.k} data-step-item>
                   <label className="field__label" htmlFor={`${id}-${f.k}`}>{FORM.fields[f.k]}</label>
                   <input
@@ -308,14 +325,20 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
               </div>
             </div>
             <label className="consent" data-step-item>
-              <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} aria-invalid={!!errors.privacy_consent} />
+              <input id={`${id}-consent`} type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)} aria-invalid={!!errors.privacy_consent} />
               <span>
-                {FORM.consent.split("aviso de privacidade")[0]}
-                <Link href="/privacidade" target="_blank">aviso de privacidade</Link>
-                {FORM.consent.split("aviso de privacidade")[1]}
+                {consentBefore}
+                <Link href={cfg.routes.privacy} target="_blank">{FORM.consentLink}</Link>
+                {consentAfter}
                 {errors.privacy_consent ? <span className="field__error"> {errors.privacy_consent}</span> : null}
               </span>
             </label>
+            {FORM.smsConsent ? (
+              <label className="consent consent--sms" data-step-item>
+                <input id={`${id}-sms`} type="checkbox" checked={sms} onChange={(e) => setSms(e.target.checked)} />
+                <span>{FORM.smsConsent}</span>
+              </label>
+            ) : null}
             <input className="hp" type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true" />
             {TURNSTILE ? <div ref={turnstileRef} data-step-item /> : null}
             <div data-step-item>

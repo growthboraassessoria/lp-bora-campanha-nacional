@@ -1,12 +1,15 @@
 "use client";
 // Prova social viva: números editoriais gigantes, só com dados reais. Sem dados, a frase diz que o mapa começa com você.
-import { PROOF } from "@/lib/copy";
+import { formatNumber } from "@/lib/locale";
 import { useGsap } from "@/hooks/useGsap";
 import { countUp, revealSection } from "@/lib/motion";
 import type { NationalStats } from "@/lib/db/types";
 import Headline from "./Headline";
+import { useCopy, useLocale } from "./LocaleProvider";
 
 export default function NationalCounter({ stats }: { stats: NationalStats }) {
+  const { PROOF } = useCopy();
+  const locale = useLocale();
   const has = stats.leads > 0;
   const ref = useGsap<HTMLElement>(({ scope, reduced }) => {
     revealSection(scope, reduced);
@@ -14,7 +17,7 @@ export default function NationalCounter({ stats }: { stats: NationalStats }) {
   }, [stats.leads, stats.cities, stats.states]);
 
   return (
-    <section ref={ref} className="proof container" aria-label="Quem já entrou no movimento">
+    <section ref={ref} className="proof container" aria-label={PROOF.aria}>
       {has ? (
         <div className="proof__grid">
           {[
@@ -24,7 +27,7 @@ export default function NationalCounter({ stats }: { stats: NationalStats }) {
           ].map(([n, label]) => (
             <div key={label as string} data-reveal>
               <div className="proof__num" data-count={n}>
-                {Number(n).toLocaleString("pt-BR")}
+                {formatNumber(Number(n), locale)}
               </div>
               <div className="proof__label">{label}</div>
             </div>

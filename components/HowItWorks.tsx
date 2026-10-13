@@ -1,12 +1,13 @@
 "use client";
 // Três momentos em sequência de scroll, atravessados por uma pista que se desenha (DrawSVG + ScrollTrigger).
-import { HOW } from "@/lib/copy";
 import { useGsap } from "@/hooks/useGsap";
 import { gsap, MOTION_OK } from "@/lib/gsap";
 import { revealSection } from "@/lib/motion";
 import Headline from "./Headline";
+import { useCopy } from "./LocaleProvider";
 
 export default function HowItWorks() {
+  const { HOW } = useCopy();
   const ref = useGsap<HTMLElement>(({ q, reduced, mm }) => {
     // Cabeçalho e fechamento revelam por conta própria; os passos têm o próprio gatilho (sem duas animações na mesma linha).
     q(".how__head, .how__close").forEach((el) => revealSection(el as HTMLElement, reduced));

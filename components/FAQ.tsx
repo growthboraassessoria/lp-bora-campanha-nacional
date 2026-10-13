@@ -1,17 +1,18 @@
 "use client";
 // Perguntas em dois grupos: a campanha e treinar com a BORA. Numeração contínua.
-import { FAQ_GROUPS } from "@/lib/copy";
 import { useGsap } from "@/hooks/useGsap";
 import { revealSection } from "@/lib/motion";
 import { track } from "@/lib/analytics";
 import Headline from "./Headline";
+import { useCopy } from "./LocaleProvider";
 
 export default function FAQ() {
+  const { FAQ_GROUPS, FAQ_TITLE } = useCopy();
   const ref = useGsap<HTMLElement>(({ scope, reduced }) => revealSection(scope, reduced));
   let n = 0;
   return (
     <section ref={ref} className="faq section container" aria-labelledby="faq-title">
-      <Headline id="faq-title" lines={["PERGUNTAS", "FREQUENTES."]} size="m" />
+      <Headline id="faq-title" lines={FAQ_TITLE} size="m" />
       {FAQ_GROUPS.map((g) => (
         <div className="faq__group" key={g.eyebrow}>
           <div className="faq__head" data-reveal>

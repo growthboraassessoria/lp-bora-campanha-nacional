@@ -574,3 +574,20 @@ a { color: inherit; text-decoration: none; }
 .signals__list { display: flex; flex-wrap: wrap; gap: 10px 28px; }
 .signals__list li { display: inline-flex; align-items: center; gap: 10px; font-size: clamp(22px, 2.6vw, 34px); font-weight: 900; text-transform: uppercase; letter-spacing: -0.02em; }
 .signals__list .muted { font-size: 0.5em; letter-spacing: 0.1em; }
+
+/* ── Versão EUA ── */
+.about__note { margin-top: 18px; font-size: 15px; font-weight: 700; color: var(--fg-2); }
+/* Ranking sem a coluna de vagas de Fundador (oferta oculta nos EUA). */
+@media (min-width: 900px) { .board--plain .row { grid-template-columns: 72px minmax(0, 1.4fr) 150px minmax(200px, 1fr) 80px; grid-template-areas: "rank city people bar pct"; } }
+@media (max-width: 899px) { .board--plain .row { grid-template-areas: "rank city people" "rank bar bar" "rank pct pct"; } .board--plain .row__pct { text-align: left; } }
+@media (min-width: 768px) and (max-width: 899px) { .board--plain .row { grid-template-areas: "rank city people pct" "rank bar bar bar"; } .board--plain .row__pct { text-align: right; } }
+/* Aceite de mensagens de texto: letra menor, mas legível. */
+.consent--sms { font-size: 12px; }
+/* O mapa dos EUA é largo e baixo: usa a coluna inteira e fica centralizado na vertical ao lado do texto. */
+@media (min-width: 900px) {
+  .hero--us .hero__map { margin-top: clamp(16px, 5vh, 64px); display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 14px 20px; }
+  .hero--us .hero__map > div:first-child { grid-column: 1 / -1; }
+  /* Legenda e botão de localização ficam abaixo do mapa: no canto ficariam em cima do Alasca e do Havaí. */
+  .hero--us .hero__legend { position: static; grid-column: 2; grid-row: 2; }
+  .hero--us .hero__locate { position: static; grid-column: 1; grid-row: 2; justify-self: start; }
+}

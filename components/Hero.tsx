@@ -2,21 +2,31 @@
 // Escala 1, Brasil: manchete, mapa proprietário e o painel que coloca a cidade no mapa. Página branca, verde como sinal.
 // Com permissão, o mapa mostra onde a pessoa está (estado e cidade conhecida mais perto); a posição não sai do aparelho.
 import { useEffect, useRef, useState } from "react";
-import { HERO, FORM, fill } from "@/lib/copy";
+import { fill } from "@/lib/copy";
 import { useGsap } from "@/hooks/useGsap";
 import { gsap, MOTION_OK } from "@/lib/gsap";
 import { track } from "@/lib/analytics";
-import { UF_NAMES } from "@/lib/geo";
+import { BR_GEO, stateName } from "@/lib/geo";
+import type { Geo as GeoData } from "@/lib/geo/types";
+import type { Locale } from "@/lib/locale";
 import { locate, type Located } from "@/lib/geo/locate";
 import { UNITS } from "@/lib/geo/units";
 import { SOCIAL_SIGNALS } from "@/lib/geo/signals";
 import BrazilMap, { type MapCity, type MapFocus, type MapMarker } from "./BrazilMap";
 import LeadForm, { type ResolvedCity } from "./LeadForm";
+import { useConfig, useCopy } from "./LocaleProvider";
+
+/** A geografia do país da página. A dos EUA só é baixada quando alguém de lá pede a localização. */
+async function geoFor(locale: Locale): Promise<GeoData> {
+  return locale === "us" ? (await import("@/lib/geo/us")).US_GEO : BR_GEO;
+}
 
 type Props = { variant: "A" | "B"; cities: MapCity[] };
 type Geo = "idle" | "asking" | "found" | "outside" | "denied" | "unsupported";
 
 export default function Hero({ variant, cities }: Props) {
+  const { HERO, FORM } = useCopy();
+  const cfg = useConfig();
   const [focus, setFocus] = useState<MapFocus>(null);
   const [placed, setPlaced] = useState<ResolvedCity | null>(null);
   const [geo, setGeo] = useState<Geo>("idle");
@@ -33,8 +43,8 @@ export default function Hero({ variant, cities }: Props) {
     setGeo("asking");
     track("geo_prompt", { auto });
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const found = locate(pos.coords.latitude, pos.coords.longitude, cities);
+      async (pos) => {
+        const found = locate(await geoFor(cfg.locale), pos.coords.latitude, pos.coords.longitude, cities);
         if (!found) {
           setGeo("outside");
           track("geo_outside");
@@ -105,11 +115,11 @@ export default function Hero({ variant, cities }: Props) {
     geo === "found" && where
       ? where.near
         ? fill(HERO.geo.foundNear, { city: where.near.name })
-        : fill(HERO.geo.found, { uf: UF_NAMES[where.uf] ?? where.uf })
+        : fill(HERO.geo.found, { uf: stateName(where.uf) })
       : HERO.geo[geo];
 
   return (
-    <section ref={ref} className="hero" aria-labelledby="hero-title">
+    <section ref={ref} className={`hero hero--${cfg.locale}`} aria-labelledby="hero-title">
       <div className="hero__content">
         <p className="eyebrow eyebrow--dot hero__eyebrow">{HERO.eyebrow}</p>
         <h1 id="hero-title" className={`display display-xl hero__title${variant === "B" ? " hero__title--b" : ""}`}>
@@ -124,13 +134,13 @@ export default function Hero({ variant, cities }: Props) {
       </div>
       <div className="hero__map">
         <div aria-hidden="true">
-          <BrazilMap cities={cities} focus={focus} marker={marker} units={UNITS} signals={SOCIAL_SIGNALS} interactive reveal labels={6} patternOpacity={0} />
+          <BrazilMap cities={cities} focus={focus} marker={marker} units={cfg.features.units ? UNITS : []} signals={cfg.features.signals ? SOCIAL_SIGNALS : []} interactive reveal labels={6} patternOpacity={0} />
         </div>
         <ul className="hero__legend" aria-label="Legenda do mapa">
-          <li><span className="hero__legend-unit" aria-hidden="true" />{HERO.legend.units}</li>
+          {cfg.features.units ? <li><span className="hero__legend-unit" aria-hidden="true" />{HERO.legend.units}</li> : null}
           <li><span className="hero__legend-dot" aria-hidden="true" />{HERO.legend.asking}</li>
           <li><span className="hero__legend-dot hero__legend-dot--hot" aria-hidden="true" />{HERO.legend.hot}</li>
-          <li><span className="hero__legend-signal" aria-hidden="true" />{HERO.legend.signal}</li>
+          {cfg.features.signals ? <li><span className="hero__legend-signal" aria-hidden="true" />{HERO.legend.signal}</li> : null}
         </ul>
         <button type="button" className={`hero__locate hero__locate--${geo}`} onClick={() => findMe(false)} disabled={geo === "asking"} aria-live="polite" title={HERO.geo.hint}>
           <span className="hero__locate-dot" aria-hidden="true" />

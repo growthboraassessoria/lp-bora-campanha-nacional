@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/db";
 import { getCurrentLead } from "@/lib/server/session";
+import { LOCALES, localeOfLead } from "@/lib/locale";
 
 export const runtime = "nodejs";
 
@@ -20,7 +21,8 @@ export async function POST(req: Request) {
   try {
     const store = getStore();
     await store.saveQualification(lead.id, answers);
-    await store.recordEvent({ name: "qualification_completed", lead_id: lead.id, path: "/obrigado", props: { answers: Object.keys(answers).length } });
+    const cfg = LOCALES[localeOfLead(lead)];
+    await store.recordEvent({ name: "qualification_completed", lead_id: lead.id, path: cfg.routes.thanks, site_id: cfg.locale === "br" ? null : cfg.siteId, props: { answers: Object.keys(answers).length } });
   } catch (e) {
     console.error("[qualification]", e);
     return NextResponse.json({ ok: false }, { status: 500 });

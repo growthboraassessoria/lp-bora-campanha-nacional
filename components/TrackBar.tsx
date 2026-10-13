@@ -2,8 +2,11 @@
 // Barra de progresso inspirada na pista: faixa, preenchimento verde e bandeira de chegada na meta.
 import { useGsap } from "@/hooks/useGsap";
 import { gsap } from "@/lib/gsap";
+import { formatNumber } from "@/lib/locale";
+import { useLocale } from "./LocaleProvider";
 
 export default function TrackBar({ value, goal, label }: { value: number; goal: number; label?: string }) {
+  const locale = useLocale();
   const pct = Math.min(100, Math.round((value / goal) * 100));
   const ref = useGsap<HTMLDivElement>(({ q, reduced }) => {
     if (reduced) {
@@ -15,7 +18,7 @@ export default function TrackBar({ value, goal, label }: { value: number; goal: 
   return (
     <div ref={ref} className="trackbar" role="progressbar" aria-valuemin={0} aria-valuemax={goal} aria-valuenow={value} aria-label={label}>
       <div className="trackbar__nums mono">
-        <span>{value.toLocaleString("pt-BR")}</span>
+        <span>{formatNumber(value, locale)}</span>
         <span className="muted">/ {goal}</span>
       </div>
       <div className="trackbar__lane">

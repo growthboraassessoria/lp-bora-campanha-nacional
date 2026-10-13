@@ -87,7 +87,7 @@ await page.evaluate(() => fetch("/api/sair", { method: "POST", redirect: "manual
 await wait(500);
 await page.goto(`${base}/eu`, { waitUntil: "networkidle0" });
 console.log("sem cookie, /eu leva para:", page.url());
-await page.type("#login-cpf", cpfUsado, { delay: 15 });
+await page.type("#login-id", cpfUsado, { delay: 15 });
 await page.type("#login-birth", "10051990", { delay: 15 });
 await Promise.all([page.waitForNavigation({ waitUntil: "networkidle0", timeout: 20000 }), page.click(".login .btn")]);
 await wait(2500);
