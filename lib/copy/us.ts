@@ -1,7 +1,7 @@
 // All public copy for the U.S. version of the campaign, in English. Same keys as ./br.ts.
 // Tone: direct, positive, young. Always "BORA". The offer (pricing and the Founder program) is hidden in the
 // U.S. for now, so those blocks are re-exported from the Brazilian file and never rendered here.
-import { FORM as BR_FORM, THANKS as BR_THANKS } from "./br";
+import { THANKS as BR_THANKS } from "./br";
 
 export { FOUNDING, FOUNDER_PAGE, SIGNALS } from "./br";
 
@@ -87,7 +87,16 @@ export const FORM = {
   micro: "Takes 30 seconds. No charge.",
   existing: "You're already in. Taking you to your link.",
   placedLine: "You just put {city} on the map.",
-  unit: BR_FORM.unit,
+  unit: {
+    eyebrow: "GOOD NEWS",
+    title: "BORA IS ALREADY IN {city}.",
+    text: "No need to wait for the campaign: you can already train with us there.",
+    cta: "MEET BORA {city}",
+    fix: "Change ZIP code",
+    trialText: "No need to wait for the campaign: book a trial class and meet BORA {city}.",
+    trialCta: "BOOK A TRIAL CLASS",
+    redirecting: "Opening the trial class page…",
+  },
 };
 
 export const PROOF = {

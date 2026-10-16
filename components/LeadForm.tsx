@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { fill } from "@/lib/copy";
 import { ufLabel } from "@/lib/locale";
-import { unitBlocking, type Unit } from "@/lib/geo/units";
+import { trialLink, unitBlocking, type Unit } from "@/lib/geo/units";
 import { formatCpf, formatDateInput, formatPhoneFor, formatPostal, messagesFor, validateLead, type FieldErrors } from "@/lib/validation";
 import { track } from "@/lib/analytics";
 import { gsap } from "@/lib/gsap";
@@ -118,7 +118,7 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
       if (u) {
         setUnit(u);
         setStep("unit");
-        track("unit_match", { uf: d.uf, city: d.city, unit: u.slug, variant });
+        track("unit_match", { uf: d.uf, city: d.city, unit: u.slug, trial: !!u.trialUrl, variant });
       } else {
         setUnit(null);
         setStep("confirm");
@@ -239,11 +239,18 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
           <div className="confirm unit">
             <p className="confirm__q" data-step-item>{FORM.unit.eyebrow}</p>
             <p className="unit__title" data-step-item>{fill(FORM.unit.title, { city: city.city })}</p>
-            <p className="unit__text" data-step-item>{FORM.unit.text}</p>
+            <p className="unit__text" data-step-item>{unit.trialUrl ? fill(FORM.unit.trialText, { city: unit.label ?? unit.city }) : FORM.unit.text}</p>
             <div className="confirm__actions" data-step-item>
-              <a className="btn btn--black btn-arrow" href={unit.url ?? SITE.studentUrl} target="_blank" rel="noopener" onClick={() => track("unit_click", { unit: unit.slug, variant })}>
-                {fill(FORM.unit.cta, { city: unit.label ?? unit.city })}
-              </a>
+              {unit.trialUrl ? (
+                // Praça com aula experimental: o botão leva para a página dela, na mesma aba.
+                <a className="btn btn--green btn-arrow unit__trial" href={trialLink(unit) ?? unit.trialUrl} onClick={() => track("trial_click", { unit: unit.slug, variant })}>
+                  {FORM.unit.trialCta}
+                </a>
+              ) : (
+                <a className="btn btn--black btn-arrow" href={unit.url ?? SITE.studentUrl} target="_blank" rel="noopener" onClick={() => track("unit_click", { unit: unit.slug, variant })}>
+                  {fill(FORM.unit.cta, { city: unit.label ?? unit.city })}
+                </a>
+              )}
               <button type="button" className="confirm__fix" onClick={fixCity}>
                 {FORM.unit.fix}
               </button>

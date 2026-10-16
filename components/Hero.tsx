@@ -10,7 +10,7 @@ import { BR_GEO, stateName } from "@/lib/geo";
 import type { Geo as GeoData } from "@/lib/geo/types";
 import type { Locale } from "@/lib/locale";
 import { locate, type Located } from "@/lib/geo/locate";
-import { UNITS } from "@/lib/geo/units";
+import { unitsOf } from "@/lib/geo/units";
 import { SOCIAL_SIGNALS } from "@/lib/geo/signals";
 import BrazilMap, { type MapCity, type MapFocus, type MapMarker } from "./BrazilMap";
 import LeadForm, { type ResolvedCity } from "./LeadForm";
@@ -134,7 +134,7 @@ export default function Hero({ variant, cities }: Props) {
       </div>
       <div className="hero__map">
         <div aria-hidden="true">
-          <BrazilMap cities={cities} focus={focus} marker={marker} units={cfg.features.units ? UNITS : []} signals={cfg.features.signals ? SOCIAL_SIGNALS : []} interactive reveal labels={6} patternOpacity={0} />
+          <BrazilMap cities={cities} focus={focus} marker={marker} units={cfg.features.units ? unitsOf(cfg.locale) : []} signals={cfg.features.signals ? SOCIAL_SIGNALS : []} interactive reveal labels={6} patternOpacity={0} />
         </div>
         <ul className="hero__legend" aria-label="Legenda do mapa">
           {cfg.features.units ? <li><span className="hero__legend-unit" aria-hidden="true" />{HERO.legend.units}</li> : null}

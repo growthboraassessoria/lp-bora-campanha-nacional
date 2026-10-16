@@ -6,7 +6,7 @@ import { cleanCpf, messagesFor, parseBirthDateFor, storedPhone, titleCase, valid
 import { COOKIE_DAYS, LEAD_COOKIE, isValidCode, makeCode, signLeadId, utmFromTouch } from "@/lib/referral";
 import { getAttribution, getRequestMeta } from "@/lib/server/session";
 import { resolvePostal } from "@/lib/server/postal";
-import { unitBlocking } from "@/lib/geo/units";
+import { trialLink, unitBlocking } from "@/lib/geo/units";
 import { getCopy, fill } from "@/lib/copy";
 import { LOCALES, localeOfLead, type Locale } from "@/lib/locale";
 
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
     const unit = unitBlocking(place.slug, place.uf, fields.cep);
     if (unit) {
       const { SITE, FORM } = getCopy(locale);
-      return NextResponse.json({ ok: false, unit: { slug: unit.slug, city: unit.city, uf: unit.uf, url: unit.url ?? SITE.studentUrl }, error: fill(FORM.unit.title, { city: place.city }) }, { status: 409 });
+      return NextResponse.json({ ok: false, unit: { slug: unit.slug, city: unit.city, uf: unit.uf, url: unit.url ?? SITE.studentUrl, trial_url: trialLink(unit) }, error: fill(FORM.unit.title, { city: place.city }) }, { status: 409 });
     }
   }
 

@@ -181,7 +181,8 @@ export default function CountryMap({ geo, ariaLabel, cities, focus = null, marke
           return (
             <g key={u.slug} className="map-unit">
               <rect x={x - s / 2} y={y - s / 2} width={s} height={s} rx={s * 0.22} fill="#000" stroke="#ceff00" strokeWidth={0.7 * Math.max(z, 0.4)} />
-              {u.showLabel ? (
+              {/* Sem rótulo quando a câmera já está na cidade dessa praça: o nome aparece uma vez só, no ponto do foco. */}
+              {u.showLabel && focus?.label?.toUpperCase() !== (u.label ?? u.city).toUpperCase() ? (
                 <text x={x + s / 2 + 2 * z} y={y + (1.8 + (u.labelDy ?? 0)) * z} fontSize={5 * Math.max(z, 0.35)} fontWeight="900" fill={T.label} letterSpacing="0.5">
                   {(u.label ?? u.city).toUpperCase()}
                 </text>

@@ -30,7 +30,7 @@ export const LOCALES: Record<Locale, LocaleConfig> = {
     locale: "us", country: "US", lang: "en-US", numberLocale: "en-US", ogLocale: "en_US", siteId: "vamos-em-frente-us",
     routes: { home: "/us", signup: "/us#cadastro", thanks: "/us/thanks", me: "/us/me", login: "/us/login", ranking: "/us/ranking", privacy: "/us/privacy", terms: "/us/terms", founder: null, logout: "/api/sair?l=us", city: (slug) => `/us/city/${slug.replace(/^us-/, "")}` },
     postal: { api: "/api/zip", param: "zip", digits: 5, maxLength: 5 },
-    features: { founder: false, units: false, signals: false, group: false, studentLink: false, cpf: false, trainingFaq: false },
+    features: { founder: false, units: true, signals: false, group: false, studentLink: false, cpf: false, trainingFaq: false },
   },
 };
 

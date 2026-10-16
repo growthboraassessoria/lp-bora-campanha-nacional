@@ -36,7 +36,7 @@ check("idioma do documento", (await page.$eval("html", (e) => e.lang)) === "en-U
 check("manchete em inglês", (await page.$eval("#hero-title", (e) => e.textContent)).includes("IN YOUR"));
 check("mapa dos EUA com 51 estados", (await page.$$eval(".hero__map .map-state", (e) => e.length)) === 51, await page.$eval(".hero__map svg", (e) => e.getAttribute("viewBox")));
 check("sem oferta (Founding 50)", !(await page.$(".founding")));
-check("sem legenda de unidades e de redes", !(await page.$(".hero__legend-unit")) && !(await page.$(".hero__legend-signal")));
+check("legenda com a praça (Miami) e sem a de redes", !!(await page.$(".hero__legend-unit")) && !(await page.$(".hero__legend-signal")) && (await page.$$(".hero__map .map-unit")).length === 1);
 await page.screenshot({ path: `${out}/1-home.png` });
 for (let y = 0; y < 16000; y += 700) { await page.evaluate((y) => window.scrollTo(0, y), y); await wait(120); }
 await wait(800);
