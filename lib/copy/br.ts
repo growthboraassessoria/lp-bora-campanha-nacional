@@ -108,7 +108,7 @@ export const PROOF = {
 export const HOW = {
   title: ["COMO A BORA", "CHEGA NA SUA CIDADE."],
   steps: [
-    { n: "01", title: "VOCÊ ENTRA.", text: ["Cadastro em 30 segundos.", "Seu CEP diz onde você conta."] },
+    { n: "01", title: "VOCÊ ENTRA.", text: ["Cadastro em 30 segundos.", "Seu CEP diz onde você conta.", "Sua carteirinha BORA vale em qualquer ponto físico da BORA no Brasil."] },
     { n: "02", title: "VOCÊ CHAMA.", text: ["Seu link é único.", "Cada pessoa que entra por ele conta para sua cidade e para você."] },
     { n: "03", title: "A BORA CHEGA.", text: ["A cidade ganha força.", "O primeiro treino aberto acontece.", "As vagas de Aluno Fundador são ativadas."] },
   ],
@@ -148,7 +148,7 @@ export const FOUNDING = {
   title: ["VOCÊ NÃO PRECISA", "ESPERAR A BORA CHEGAR."],
   text: "Os primeiros 50 atletas de cada cidade que começarem a treinar com a BORA ganham o status permanente de Aluno Fundador.",
   credential: { label: "ALUNO FUNDADOR", prefix: "BORA" },
-  benefits: ["Número de Fundador", "70% de desconto no plano mensal", "Prioridade no primeiro treino aberto", "Prioridade na operação presencial"],
+  benefits: ["Número de Fundador", "70% de desconto no plano mensal", "1 mês de BORA Online para os 5 primeiros da cidade", "Prioridade no primeiro treino aberto", "Prioridade na operação presencial"],
   quote: ["VOCÊ NÃO ENTROU", "DEPOIS QUE A BORA CHEGOU.", "VOCÊ AJUDOU", "A BORA A CHEGAR."],
   cta: "QUERO SER FUNDADOR",
   note: "Vagas limitadas a 50 por cidade. As condições estão na página do programa.",
@@ -177,7 +177,7 @@ export const FAQ_TITLE = ["PERGUNTAS", "FREQUENTES."];
 
 export const FAQ = [
   { q: "Quanto custa entrar no movimento?", a: "Nada. O cadastro é gratuito e não gera cobrança." },
-  { q: "O que acontece depois que eu me cadastro?", a: "Você entra no grupo da BORA do seu estado, recebe seu link pessoal e acompanha sua cidade no ranking." },
+  { q: "O que acontece depois que eu me cadastro?", a: "Você ganha a carteirinha BORA, que deixa você treinar em qualquer ponto físico da BORA no Brasil. Também entra no grupo da BORA do seu estado, recebe seu link pessoal e acompanha sua cidade no ranking." },
   { q: "Quando a BORA chega na minha cidade?", a: "Quando a cidade mostra que está pronta. A meta inicial é 500 pessoas; aí fazemos o primeiro treino aberto e abrimos as vagas de Aluno Fundador." },
   { q: "E se eu quiser começar a treinar agora?", a: "Pode. A BORA Online já existe, e os primeiros 50 de cada cidade entram como Alunos Fundadores." },
   { q: "Já tenho assessoria ou corro em um clube. Posso entrar?", a: "Pode. Quanto mais corredores na cidade, melhor. Pergunte ao seu clube se ele quer correr junto com a BORA." },
@@ -244,7 +244,7 @@ export const THANKS = {
   },
   card: {
     title: ["SUA CARTEIRINHA", "BORA."],
-    text: "Seu BORA ID é o seu número no movimento, do #0001 em diante. O QR code abre o seu link pessoal e identifica você nos treinos abertos.",
+    text: "Seu BORA ID é o seu número no movimento, do #0001 em diante. Com a carteirinha você treina em qualquer ponto físico da BORA no Brasil. O QR code abre o seu link pessoal e identifica você nos treinos.",
     label: "BORA ID",
     since: "MEMBRO DESDE",
     campaign: "BORA, VAMOS EM FRENTE",
@@ -390,7 +390,7 @@ export const FOUNDER_PAGE = {
   eyebrow: "FOUNDING 50",
   title: ["ALUNO FUNDADOR", "BORA {city}."],
   what: "Os primeiros 50 de cada cidade que começam a treinar com a BORA Online.",
-  gains: ["Número de Fundador", "Badge permanente", "70% de desconto no plano mensal", "Prioridade no primeiro treino aberto", "Prioridade na operação presencial", "Grupo exclusivo"],
+  gains: ["Número de Fundador", "Badge permanente", "70% de desconto no plano mensal", "1 mês de BORA Online para os 5 primeiros da cidade", "Prioridade no primeiro treino aberto", "Prioridade na operação presencial", "Grupo exclusivo"],
   conditionTitle: "CONDIÇÃO DE FUNDADOR",
   condition: ["70% de desconto no plano mensal.", "R$ 84 por mês, em vez de R$ 280.", "Mês a mês no cartão."],
   conditionNote: "O plano mensal da BORA custa R$ 280. O Aluno Fundador paga R$ 84 por mês.",
