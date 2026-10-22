@@ -14,7 +14,7 @@ export type LocaleConfig = {
   ogLocale: string;
   /** `site_id` gravado nos cadastros, eventos e cliques (o BORA OS separa as LPs por ele). */
   siteId: string;
-  routes: { home: string; signup: string; thanks: string; me: string; login: string; ranking: string; privacy: string; terms: string; founder: string | null; logout: string; city: (slug: string) => string };
+  routes: { home: string; signup: string; thanks: string; me: string; login: string; ranking: string; privacy: string; terms: string; founder: string | null; logout: string; city: (slug: string) => string; survey: string | null };
   postal: { api: string; param: string; digits: number; maxLength: number };
   features: { founder: boolean; units: boolean; signals: boolean; group: boolean; studentLink: boolean; cpf: boolean; trainingFaq: boolean };
 };
@@ -22,13 +22,13 @@ export type LocaleConfig = {
 export const LOCALES: Record<Locale, LocaleConfig> = {
   br: {
     locale: "br", country: "BR", lang: "pt-BR", numberLocale: "pt-BR", ogLocale: "pt_BR", siteId: "vamos-em-frente",
-    routes: { home: "/", signup: "/#cadastro", thanks: "/obrigado", me: "/eu", login: "/entrar", ranking: "/ranking", privacy: "/privacidade", terms: "/termos", founder: "/fundador", logout: "/api/sair", city: (slug) => `/cidade/${slug}` },
+    routes: { home: "/", signup: "/#cadastro", thanks: "/obrigado", me: "/eu", login: "/entrar", ranking: "/ranking", privacy: "/privacidade", terms: "/termos", founder: "/fundador", logout: "/api/sair", city: (slug) => `/cidade/${slug}`, survey: "/perguntas" },
     postal: { api: "/api/cep", param: "cep", digits: 8, maxLength: 9 },
     features: { founder: true, units: true, signals: true, group: true, studentLink: true, cpf: true, trainingFaq: true },
   },
   us: {
     locale: "us", country: "US", lang: "en-US", numberLocale: "en-US", ogLocale: "en_US", siteId: "vamos-em-frente-us",
-    routes: { home: "/us", signup: "/us#cadastro", thanks: "/us/thanks", me: "/us/me", login: "/us/login", ranking: "/us/ranking", privacy: "/us/privacy", terms: "/us/terms", founder: null, logout: "/api/sair?l=us", city: (slug) => `/us/city/${slug.replace(/^us-/, "")}` },
+    routes: { home: "/us", signup: "/us#cadastro", thanks: "/us/thanks", me: "/us/me", login: "/us/login", ranking: "/us/ranking", privacy: "/us/privacy", terms: "/us/terms", founder: null, logout: "/api/sair?l=us", city: (slug) => `/us/city/${slug.replace(/^us-/, "")}`, survey: null },
     postal: { api: "/api/zip", param: "zip", digits: 5, maxLength: 5 },
     features: { founder: false, units: true, signals: false, group: false, studentLink: false, cpf: false, trainingFaq: false },
   },

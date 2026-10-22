@@ -35,6 +35,32 @@ export function verifyLeadCookie(value: string | undefined): string | null {
   return timingSafeEqual(Buffer.from(sig), Buffer.from(expected)) ? id : null;
 }
 
+/** Cookie curto só para o formulário de perguntas. Não abre a área do membro. */
+export const SURVEY_MAX_AGE = 30 * 60;
+
+export function signSurvey(leadId: string): string {
+  const exp = Date.now() + SURVEY_MAX_AGE * 1000;
+  const payload = `${leadId}.${exp}`;
+  const sig = createHmac("sha256", secret()).update(`survey:${payload}`).digest("base64url").slice(0, 32);
+  return `${payload}.${sig}`;
+}
+
+export function verifySurveyCookie(value: string | undefined): string | null {
+  if (!value) return null;
+  const i = value.lastIndexOf(".");
+  if (i < 0) return null;
+  const signed = value.slice(0, i);
+  const sig = value.slice(i + 1);
+  const j = signed.lastIndexOf(".");
+  if (j < 0) return null;
+  const id = signed.slice(0, j);
+  const exp = Number(signed.slice(j + 1));
+  if (!id || !Number.isFinite(exp) || Date.now() > exp) return null;
+  const expected = createHmac("sha256", secret()).update(`survey:${id}.${exp}`).digest("base64url").slice(0, 32);
+  if (sig.length !== expected.length) return null;
+  return timingSafeEqual(Buffer.from(sig), Buffer.from(expected)) ? id : null;
+}
+
 export function hashIp(ip: string | null | undefined): string | null {
   if (!ip) return null;
   return createHmac("sha256", secret()).update(ip).digest("hex").slice(0, 32);

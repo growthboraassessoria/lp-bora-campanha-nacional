@@ -26,6 +26,7 @@ export const META = {
   thanks: "You're in",
   me: "My area",
   login: "Sign in to my area",
+  survey: "Tell us more about you",
   ranking: "Where does BORA land first?",
   cityFallback: "City",
   cityTitle: "BORA {city}",
@@ -122,7 +123,7 @@ export const RANKING = {
   title: ["WHERE DOES BORA", "LAND FIRST?"],
   aria: "City ranking",
   pctAria: "{pct}% of the {goal} goal",
-  goalLabel: "First goal: 500 people per city.",
+  goalLabel: "First goal: {n} people per city.",
   people: "people",
   founder: "",
   filterAll: "All states",
@@ -164,7 +165,7 @@ export const FAQ_TITLE = ["QUESTIONS,", "ANSWERED."];
 export const FAQ = [
   { q: "What does it cost to join?", a: "Nothing. Signing up is free and there's no charge." },
   { q: "What happens after I sign up?", a: "You get your BORA ID and your personal link, and you can follow your city in the ranking. If you opted in to texts, we'll message you when there's news for your city." },
-  { q: "When does BORA come to my city?", a: "We're using this map to decide where to go first. The first goal is 500 people per city. When your city gets there, you'll be among the first to hear what's next." },
+  { q: "When does BORA come to my city?", a: "We're using this map to decide where to go first. The first goal is 100 people per city. When your city gets there, you'll be among the first to hear what's next." },
   { q: "I already have a coach or run with a club. Can I join?", a: "Yes. The more runners in your city, the better. Ask your club if they want in." },
   { q: "What do you do with my data?", a: "We use it to count your city, create your BORA ID, and contact you about BORA in your city. We don't sell your data. The details are in the privacy notice." },
   { q: "How does the referral link work?", a: "Everyone who signs up through your link counts for your city and shows up in your member area." },
@@ -194,6 +195,20 @@ export const FOOTER = {
   ],
 };
 
+export const STUDENT = {
+  eyebrow: "YOU'RE ALREADY BORA",
+  title: ["GOOD TO", "HAVE YOU HERE."],
+  text: "We're glad you're already with BORA. Share this page so it reaches people who don't have BORA in their city yet.",
+  share: "SHARE",
+  copy: "COPY LINK",
+  copied: "LINK COPIED",
+  site: "GO TO THE SITE",
+  close: "Close",
+  skip: "Not now",
+  sticker: "Come with us.",
+  message: "People want BORA in their city and don't have it yet. Get on the map: {link}",
+};
+
 export const THANKS = {
   eyebrow: "YOU'RE IN.",
   hello: "Hi, {name}.",
@@ -202,6 +217,20 @@ export const THANKS = {
   rankLabel: "U.S. RANKING",
   goalLabel: "GOAL",
   group: BR_THANKS.group,
+  welcome: {
+    kicker: "BORA, LET'S GO",
+    lines: ["YOU'RE IN.", "HI, {name}.", "{city} IS ON THE MAP."],
+    aria: "You're in. {city} is on the map.",
+  },
+  popup: {
+    eyebrow: "NEXT STEP",
+    text: "Learn more about the benefits inside the group.",
+    soon: "Your state's group opens soon. That's where you'll learn more about the benefits.",
+    skip: "Not now",
+    close: "Close",
+    continue: "CONTINUE",
+    sticker: "Come with us.",
+  },
   share: {
     title: ["HELP YOUR CITY", "CLIMB THE RANKING."],
     text: "Everyone who joins through your link counts for {city} and for you.",
@@ -248,6 +277,20 @@ export const THANKS = {
     skip: "Skip",
     done: "Thanks. That helps a lot.",
   },
+};
+
+export const SURVEY = {
+  eyebrow: "A FEW QUESTIONS",
+  title: ["TELL US MORE", "ABOUT YOU."],
+  text: "Enter the mobile number from your sign-up. We'll find you and ask a few questions.",
+  cpf: "Mobile number",
+  cta: "CONTINUE",
+  sending: "LOOKING…",
+  found: "Hi, {name}.",
+  foundText: "Answer what you want. It helps us show up the right way in your city.",
+  noAccount: "Not on the map yet?",
+  signup: "Sign me up",
+  profile: "Open my profile",
 };
 
 export const LOGIN = {
@@ -319,7 +362,7 @@ export const CITY_PAGE = {
   title: "BORA {city}",
   people: "{n} people already want BORA in {city}.",
   one: "{city} just hit the map.",
-  goal: "First goal: 500",
+  goal: "First goal: {n}",
   done: "{pct}% there",
   next: "You could be the next person to put {city} on the map.",
   cta: "I WANT BORA IN {city}",

@@ -31,7 +31,7 @@ Migrations em `supabase/migrations`. Com o CLI do Supabase vinculado ao projeto:
 
 Cada cadastro recebe um número nacional sequencial (`leads.bora_number`, exibido como `#0001`). A página de obrigado mostra a carteirinha digital com o número, nome, cidade e o QR code do link pessoal; `/api/carteirinha` gera a imagem para salvar (só para quem tem o cookie do cadastro) e a story inclui o número e o QR. O CPF é único por pessoa e também evita cadastro duplicado. Para recomeçar a numeração em #0001 depois de apagar cadastros de teste: `select setval('bora_number_seq', 1, false);`.
 
-As respostas opcionais da página de obrigado ficam em `qualification_answers` (uma por pessoa e pergunta). Para ler o resumo: `node scripts/respostas.mjs [UF]`.
+As respostas opcionais ficam em `qualification_answers` (uma por pessoa e pergunta). Quem já se cadastrou responde em `/perguntas`, informando o CPF. Para ler o resumo: `node scripts/respostas.mjs [UF]`.
 
 ## Área do membro
 

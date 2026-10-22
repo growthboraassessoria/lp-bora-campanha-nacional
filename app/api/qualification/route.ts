@@ -1,15 +1,15 @@
 import { NextResponse } from "next/server";
 import { getStore } from "@/lib/db";
-import { getCurrentLead } from "@/lib/server/session";
-import { LOCALES, localeOfLead } from "@/lib/locale";
+import { getSurveyLead } from "@/lib/server/session";
+import { localeOfLead } from "@/lib/locale";
 
 export const runtime = "nodejs";
 
 const KEYS = new Set(["runs", "with", "distance", "goal", "open", "intent", "price", "club", "company"]);
 
 export async function POST(req: Request) {
-  const lead = await getCurrentLead();
-  if (!lead) return NextResponse.json({ ok: false }, { status: 401 });
+  const lead = await getSurveyLead();
+  if (!lead || localeOfLead(lead) !== "br") return NextResponse.json({ ok: false }, { status: 401 });
   let body: Record<string, unknown>;
   try {
     body = (await req.json()) as Record<string, unknown>;
@@ -21,8 +21,7 @@ export async function POST(req: Request) {
   try {
     const store = getStore();
     await store.saveQualification(lead.id, answers);
-    const cfg = LOCALES[localeOfLead(lead)];
-    await store.recordEvent({ name: "qualification_completed", lead_id: lead.id, path: cfg.routes.thanks, site_id: cfg.locale === "br" ? null : cfg.siteId, props: { answers: Object.keys(answers).length } });
+    await store.recordEvent({ name: "qualification_completed", lead_id: lead.id, path: "/perguntas", site_id: null, props: { answers: Object.keys(answers).length } });
   } catch (e) {
     console.error("[qualification]", e);
     return NextResponse.json({ ok: false }, { status: 500 });

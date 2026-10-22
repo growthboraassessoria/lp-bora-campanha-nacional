@@ -1,4 +1,4 @@
-// Depois do cadastro: a cidade no mapa, a carteirinha, o link pessoal e as perguntas opcionais.
+// Depois do cadastro: delay imersiva, pop-up do grupo, carteirinha e link pessoal.
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
@@ -7,9 +7,9 @@ import Reveal from "@/components/Reveal";
 import Headline from "@/components/Headline";
 import TrackBar from "@/components/TrackBar";
 import SharePanel from "@/components/SharePanel";
-import QualificationForm from "@/components/QualificationForm";
 import BrazilMap from "@/components/BrazilMap";
 import BoraIdCard from "@/components/BoraIdCard";
+import ThanksWelcome from "@/components/ThanksWelcome";
 import { qrPath } from "@/lib/qr";
 import { getStore, CITY_GOAL } from "@/lib/db";
 import { getRanking } from "@/lib/db/cached";
@@ -44,6 +44,19 @@ export default async function ThanksScreen({ locale }: { locale: Locale }) {
 
   return (
     <>
+      {cfg.features.group ? (
+        <>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `try{var s=sessionStorage.getItem("bora_thanks_welcome");document.documentElement.classList.toggle("welcome-done",!!s);document.documentElement.classList.toggle("welcome-lock",!s)}catch(e){document.documentElement.classList.add("welcome-lock")}`,
+            }}
+          />
+          <noscript>
+            <style>{`.welcome{display:none!important}html.welcome-lock{overflow:auto}`}</style>
+          </noscript>
+          <ThanksWelcome name={lead.first_name} city={lead.city} uf={lead.state} groupUrl={group} />
+        </>
+      ) : null}
       <Header locale={locale} />
       <main className="thanks">
         <div className="thanks__map" aria-hidden="true">
@@ -108,10 +121,6 @@ export default async function ThanksScreen({ locale }: { locale: Locale }) {
               </div>
             </section>
           ) : null}
-
-          <section className="block" aria-label={THANKS.qualification.title.join(" ")}>
-            <QualificationForm />
-          </section>
         </Reveal>
       </main>
       <Footer locale={locale} />

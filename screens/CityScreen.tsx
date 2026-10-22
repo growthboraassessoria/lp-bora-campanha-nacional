@@ -46,7 +46,7 @@ export default async function CityScreen({ locale, slug }: { locale: Locale; slu
                 <b>#{stat?.rank ?? "—"}</b>
               </div>
               <div>
-                <span className="thanks__label">{CITY_PAGE.goal} · {fill(CITY_PAGE.done, { pct })}</span>
+                <span className="thanks__label">{fill(CITY_PAGE.goal, { n: CITY_GOAL })} · {fill(CITY_PAGE.done, { pct })}</span>
                 <TrackBar value={leads} goal={CITY_GOAL} label={fill(THANKS.progressAria, { city: city.name })} />
                 <p className="muted" style={{ marginTop: 10, fontSize: 13 }}>
                   {stateRank ? fill(CITY_PAGE.rankIn, { n: stateRank, where: fill(CITY_PAGE.rankState, { uf: stateName(city.uf) }) }) : null}

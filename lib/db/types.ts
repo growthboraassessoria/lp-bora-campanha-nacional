@@ -148,5 +148,5 @@ export interface Store {
   testimonials(): Promise<Testimonial[]>;
 }
 
-export const CITY_GOAL = 500;
+export const CITY_GOAL = 100;
 export const FOUNDER_SLOTS = 50;

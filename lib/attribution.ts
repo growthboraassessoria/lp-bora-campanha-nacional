@@ -3,6 +3,7 @@ import type { Utm } from "./db/types";
 
 export const REF_COOKIE = "bora_ref";
 export const LEAD_COOKIE = "bora_lead";
+export const SURVEY_COOKIE = "bora_survey";
 export const FIRST_TOUCH_COOKIE = "bora_first";
 export const LAST_TOUCH_COOKIE = "bora_last";
 export const EXPERIMENT_COOKIE = "bora_exp";
@@ -51,7 +52,7 @@ export function parseExperiment(raw: string | undefined): Experiment {
 }
 
 export function shortLink(code: string): string {
-  const domain = process.env.NEXT_PUBLIC_SHORT_DOMAIN;
+  const domain = process.env.NEXT_PUBLIC_SHORT_DOMAIN?.replace(/^https?:\/\//, "").replace(/\/$/, "");
   if (domain) return `${domain}/r/${code}`;
   return absoluteUrl(`/r/${code}`).replace(/^https?:\/\//, "");
 }

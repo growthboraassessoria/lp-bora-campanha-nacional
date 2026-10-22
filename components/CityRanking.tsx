@@ -43,7 +43,7 @@ export default function CityRanking({ rows, limit = 10, full = false, showCta = 
       <div className="ranking__head">
         <div>
           <Headline id="ranking-title" lines={RANKING.title} size="m" />
-          <p className="ranking__goal" style={{ marginTop: 18 }} data-reveal>{RANKING.goalLabel}</p>
+          <p className="ranking__goal" style={{ marginTop: 18 }} data-reveal>{fill(RANKING.goalLabel, { n: CITY_GOAL })}</p>
         </div>
         {rows.length > 0 ? (
           <label className="ranking__filter" data-reveal>

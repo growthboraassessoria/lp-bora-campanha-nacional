@@ -3,11 +3,23 @@ import "server-only";
 import { cookies, headers } from "next/headers";
 import { getStore } from "@/lib/db";
 import type { Lead } from "@/lib/db";
-import { EXPERIMENT_COOKIE, FIRST_TOUCH_COOKIE, LAST_TOUCH_COOKIE, LEAD_COOKIE, REF_COOKIE, hashIp, isValidCode, parseExperiment, parseTouch, verifyLeadCookie } from "@/lib/referral";
+import { EXPERIMENT_COOKIE, FIRST_TOUCH_COOKIE, LAST_TOUCH_COOKIE, LEAD_COOKIE, REF_COOKIE, SURVEY_COOKIE, hashIp, isValidCode, parseExperiment, parseTouch, verifyLeadCookie, verifySurveyCookie } from "@/lib/referral";
 
 export async function getCurrentLead(): Promise<Lead | null> {
   const jar = await cookies();
   const id = verifyLeadCookie(jar.get(LEAD_COOKIE)?.value);
+  if (!id) return null;
+  try {
+    return await getStore().getLeadById(id);
+  } catch {
+    return null;
+  }
+}
+
+/** Lead do formulário de perguntas (cookie curto, não abre a área do membro). */
+export async function getSurveyLead(): Promise<Lead | null> {
+  const jar = await cookies();
+  const id = verifySurveyCookie(jar.get(SURVEY_COOKIE)?.value);
   if (!id) return null;
   try {
     return await getStore().getLeadById(id);

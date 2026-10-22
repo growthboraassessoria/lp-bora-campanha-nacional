@@ -1,18 +1,17 @@
 "use client";
-// Qualificação opcional, em duas telas. Nada bloqueia; cada resposta vira dado para a chegada na cidade.
+// Perguntas da campanha, em duas telas. Cada resposta vira dado para a chegada na cidade.
 import { useState } from "react";
 import { track } from "@/lib/analytics";
-import Headline from "./Headline";
 import { useCopy } from "./LocaleProvider";
 
 type Q = { key: string; label: string; options?: readonly string[]; type?: string };
 
-export default function QualificationForm() {
+export default function QualificationForm({ onDone }: { onDone?: () => void }) {
   const { THANKS } = useCopy();
   const steps = THANKS.qualification.steps as unknown as readonly (readonly Q[])[];
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [state, setState] = useState<"idle" | "sending" | "done" | "skipped">("idle");
+  const [state, setState] = useState<"idle" | "sending" | "done">("idle");
 
   function set(k: string, v: string) {
     setAnswers((a) => ({ ...a, [k]: v }));
@@ -27,22 +26,20 @@ export default function QualificationForm() {
       /* segue */
     }
     setState("done");
+    onDone?.();
   }
 
   if (state === "done") return <p className="lede" role="status">{THANKS.qualification.done}</p>;
-  if (state === "skipped") return null;
 
   const current = steps[step];
   const last = step === steps.length - 1;
 
   return (
     <div className="qual">
-      <Headline lines={THANKS.qualification.title} size="s" />
-      <p className="block__text" style={{ marginTop: 12 }}>{THANKS.qualification.text}</p>
-      <div style={{ marginTop: 16 }}>
+      <div>
         {current.map((q) => (
           <div className="qual__q" key={q.key}>
-            <label className="qual__label" htmlFor={`q-${q.key}`}>{q.label}</label>
+            <p className="qual__label" id={`q-${q.key}`}>{q.label}</p>
             {q.options ? (
               <div className="chips" role="group" aria-labelledby={`q-${q.key}`}>
                 {q.options.map((o) => (
@@ -57,11 +54,10 @@ export default function QualificationForm() {
       </div>
       <div className="qual__actions">
         {last ? (
-          <button type="button" className="btn btn--green" onClick={send} disabled={state === "sending"}>{THANKS.qualification.send}</button>
+          <button type="button" className="btn btn--green" onClick={send} disabled={state === "sending" || Object.keys(answers).length === 0}>{THANKS.qualification.send}</button>
         ) : (
           <button type="button" className="btn btn--green btn-arrow" onClick={() => setStep(step + 1)}>{THANKS.qualification.next}</button>
         )}
-        <button type="button" className="qual__skip" onClick={() => setState("skipped")}>{THANKS.qualification.skip}</button>
       </div>
     </div>
   );

@@ -18,7 +18,7 @@ export default function Termos() {
           <p>O cadastro na campanha é gratuito e não gera cobrança. Ele registra o seu interesse em ter a BORA na sua cidade e conta para o ranking da sua cidade e do seu estado.</p>
 
           <h2>O ranking</h2>
-          <p>O ranking mostra quantas pessoas se cadastraram por cidade. A meta inicial de 500 pessoas por cidade é um marco de referência: a decisão de realizar um treino aberto ou abrir operação em uma cidade é da BORA e considera outros fatores.</p>
+          <p>O ranking mostra quantas pessoas se cadastraram por cidade. A meta inicial de 100 pessoas por cidade é um marco de referência: a decisão de realizar um treino aberto ou abrir operação em uma cidade é da BORA e considera outros fatores.</p>
 
           <h2>O link de indicação</h2>
           <p>Cada pessoa recebe um link pessoal. Cadastros feitos por esse link contam para a cidade e para o nível de embaixador de quem indicou. Cadastros duplicados, feitos em nome de terceiros ou de forma automatizada não contam e podem ser removidos.</p>

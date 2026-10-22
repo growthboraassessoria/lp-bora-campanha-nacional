@@ -25,7 +25,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   // O proxy marca o país da página; o idioma do documento segue ele (pt-BR ou en-US).
   const locale = (await headers()).get("x-bora-locale") === "us" ? "us" : "br";
   return (
-    <html lang={LOCALES[locale].lang} className={altone.variable}>
+    <html lang={LOCALES[locale].lang} className={altone.variable} suppressHydrationWarning>
       <body>
         {children}
         <AnalyticsBoot />

@@ -18,7 +18,7 @@ export default function UsTerms() {
           <p>Signing up for the campaign is free and there is no charge. It registers your interest in having BORA in your city and counts toward your city&apos;s and your state&apos;s ranking. You must be at least 13 years old to sign up.</p>
 
           <h2>The ranking</h2>
-          <p>The ranking shows how many people signed up in each city. The first goal of 500 people per city is a reference point. Whether and when BORA starts activities in a city is BORA&apos;s decision and depends on other factors. Signing up does not guarantee that BORA will operate in your city.</p>
+          <p>The ranking shows how many people signed up in each city. The first goal of 100 people per city is a reference point. Whether and when BORA starts activities in a city is BORA&apos;s decision and depends on other factors. Signing up does not guarantee that BORA will operate in your city.</p>
 
           <h2>The referral link</h2>
           <p>Each person gets a personal link. Sign-ups made through that link count for the city and for the person who referred them. Duplicate sign-ups, sign-ups made on behalf of other people, and automated sign-ups don&apos;t count and may be removed.</p>

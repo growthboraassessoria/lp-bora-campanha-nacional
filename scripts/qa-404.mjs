@@ -3,7 +3,7 @@
 import puppeteer from "puppeteer-core";
 const CHROME = process.env.CHROME ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const base = process.argv[2] ?? "http://localhost:3000";
-const routes = (process.env.ROUTES ?? "/,/r/TESTE589,/?ref=TESTE589,/ranking,/fundador,/cidade/go-goiania,/obrigado,/privacidade,/termos,/nao-existe").split(",");
+const routes = (process.env.ROUTES ?? "/,/r/TESTE589,/?ref=TESTE589,/ranking,/fundador,/cidade/go-goiania,/obrigado,/perguntas,/privacidade,/termos,/nao-existe").split(",");
 const browser = await puppeteer.launch({ executablePath: CHROME, headless: true, args: ["--no-sandbox"] });
 const page = await browser.newPage();
 const bad = [];

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCopy, fill } from "@/lib/copy";
 import type { Locale } from "@/lib/locale";
+import StudentInvite from "./StudentInvite";
 
 export default function Footer({ locale = "br" }: { locale?: Locale }) {
   const { FOOTER } = getCopy(locale);
@@ -11,7 +12,9 @@ export default function Footer({ locale = "br" }: { locale?: Locale }) {
         <img className="footer__logo" src="/brand/logo-black.png" alt="BORA" width={1200} height={307} loading="lazy" />
         <nav className="footer__links" aria-label={FOOTER.navAria}>
           {FOOTER.links.map((l) =>
-            l.external ? (
+            "invite" in l && l.invite ? (
+              <StudentInvite key={l.label} variant="footer" label={l.label} />
+            ) : l.external ? (
               <a key={l.label} href={l.href} target="_blank" rel="noopener">{l.label}</a>
             ) : (
               <Link key={l.label} href={l.href}>{l.label}</Link>

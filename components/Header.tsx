@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCopy } from "@/lib/copy";
 import { LOCALES, type Locale } from "@/lib/locale";
+import StudentInvite from "./StudentInvite";
 
 export default function Header({ staticPos = false, locale = "br" }: { staticPos?: boolean; locale?: Locale }) {
   const { SITE } = getCopy(locale);
@@ -12,11 +13,7 @@ export default function Header({ staticPos = false, locale = "br" }: { staticPos
       </Link>
       <nav className="header__nav" aria-label={SITE.navAria}>
         <Link className="header__student header__student--area" href={cfg.routes.me}>{SITE.areaLabel}</Link>
-        {cfg.features.studentLink ? (
-          <a className="header__student" href={SITE.studentUrl} target="_blank" rel="noopener">
-            {SITE.studentLabel}
-          </a>
-        ) : null}
+        {cfg.features.studentLink ? <StudentInvite variant="header" /> : null}
       </nav>
     </header>
   );

@@ -23,6 +23,7 @@ export const META = {
   thanks: "Você está dentro",
   me: "Minha área",
   login: "Entrar na minha área",
+  survey: "Nos conta mais sobre você",
   ranking: "Onde a BORA vai chegar primeiro?",
   cityFallback: "Cidade",
   cityTitle: "BORA {city}",
@@ -119,7 +120,7 @@ export const RANKING = {
   title: ["ONDE A BORA", "VAI CHEGAR PRIMEIRO?"],
   aria: "Ranking de cidades",
   pctAria: "{pct}% da meta de {goal}",
-  goalLabel: "Meta inicial: 500 pessoas por cidade.",
+  goalLabel: "Meta inicial: {n} pessoas por cidade.",
   people: "pessoas",
   founder: "vagas Founder",
   filterAll: "Todos os estados",
@@ -178,7 +179,7 @@ export const FAQ_TITLE = ["PERGUNTAS", "FREQUENTES."];
 export const FAQ = [
   { q: "Quanto custa entrar no movimento?", a: "Nada. O cadastro é gratuito e não gera cobrança." },
   { q: "O que acontece depois que eu me cadastro?", a: "Você ganha a carteirinha BORA, que deixa você treinar em qualquer ponto físico da BORA no Brasil. Também entra no grupo da BORA do seu estado, recebe seu link pessoal e acompanha sua cidade no ranking." },
-  { q: "Quando a BORA chega na minha cidade?", a: "Quando a cidade mostra que está pronta. A meta inicial é 500 pessoas; aí fazemos o primeiro treino aberto e abrimos as vagas de Aluno Fundador." },
+  { q: "Quando a BORA chega na minha cidade?", a: "Quando a cidade mostra que está pronta. A meta inicial é 100 pessoas; aí fazemos o primeiro treino aberto e abrimos as vagas de Aluno Fundador." },
   { q: "E se eu quiser começar a treinar agora?", a: "Pode. A BORA Online já existe, e os primeiros 50 de cada cidade entram como Alunos Fundadores." },
   { q: "Já tenho assessoria ou corro em um clube. Posso entrar?", a: "Pode. Quanto mais corredores na cidade, melhor. Pergunte ao seu clube se ele quer correr junto com a BORA." },
   { q: "O que vocês fazem com meus dados?", a: "Usamos para contar sua cidade, criar o seu BORA ID, te colocar no grupo e falar com você sobre a chegada da BORA. O CPF serve só para garantir um cadastro único por pessoa. Nada de venda de dados. Os detalhes estão no aviso de privacidade." },
@@ -206,7 +207,7 @@ export const FINAL = {
 export const FOOTER = {
   links: [
     { label: "Instagram", href: SITE.instagram, external: true },
-    { label: "Já sou aluno", href: SITE.studentUrl, external: true },
+    { label: "Já sou aluno", href: SITE.studentUrl, invite: true },
     { label: "Aviso de privacidade", href: "/privacidade" },
     { label: "Termos", href: "/termos" },
   ],
@@ -224,6 +225,20 @@ export const FOOTER = {
   ],
 };
 
+export const STUDENT = {
+  eyebrow: "VOCÊ JÁ É BORA",
+  title: ["QUE BOM", "TER VOCÊ AQUI."],
+  text: "A gente fica feliz demais. Agora posta essa página pra ela chegar em quem ainda não tem a BORA na cidade.",
+  share: "POSTAR NO WHATSAPP",
+  copy: "COPIAR LINK",
+  copied: "LINK COPIADO",
+  site: "IR PARA O SITE",
+  close: "Fechar",
+  skip: "Agora não",
+  sticker: "Vem com a gente.",
+  message: "Tem gente querendo a BORA na cidade e ainda não tem. Entra no mapa: {link}",
+};
+
 export const THANKS = {
   eyebrow: "VOCÊ ESTÁ DENTRO.",
   hello: "Olá, {name}.",
@@ -232,6 +247,20 @@ export const THANKS = {
   rankLabel: "RANKING NACIONAL",
   goalLabel: "META",
   group: { title: ["ENTRE NO GRUPO", "BORA {uf}"], text: "É onde a gente avisa cada passo até a BORA chegar.", cta: "ENTRAR NO WHATSAPP", soon: "O grupo do seu estado abre em breve. Você recebe o link por WhatsApp." },
+  welcome: {
+    kicker: "BORA, VAMOS EM FRENTE",
+    lines: ["VOCÊ ESTÁ DENTRO.", "OLÁ, {name}.", "{city} ENTROU NO MAPA."],
+    aria: "Você está dentro. {city} entrou no mapa.",
+  },
+  popup: {
+    eyebrow: "PRÓXIMO PASSO",
+    text: "Saiba mais sobre os benefícios dentro do grupo.",
+    soon: "O grupo do seu estado abre em breve. É lá que você fica por dentro dos benefícios.",
+    skip: "Agora não",
+    close: "Fechar",
+    continue: "CONTINUAR",
+    sticker: "Vem com a gente.",
+  },
   share: {
     title: ["AJUDE SUA CIDADE", "A SUBIR NO RANKING."],
     text: "Cada pessoa que entra pelo seu link conta para {city} e para você.",
@@ -279,6 +308,20 @@ export const THANKS = {
     skip: "Pular",
     done: "Valeu. Isso ajuda muito.",
   },
+};
+
+export const SURVEY = {
+  eyebrow: "UMAS PERGUNTAS",
+  title: ["NOS CONTA MAIS", "SOBRE VOCÊ."],
+  text: "Digite o CPF do cadastro. A gente acha você e faz umas perguntas para chegar do jeito certo na sua cidade.",
+  cpf: "CPF",
+  cta: "CONTINUAR",
+  sending: "PROCURANDO…",
+  found: "Olá, {name}.",
+  foundText: "Responde o que quiser. Ajuda a gente a chegar do jeito certo na sua cidade.",
+  noAccount: "Ainda não está no mapa?",
+  signup: "Fazer meu cadastro",
+  profile: "Acessar meu perfil",
 };
 
 export const LOGIN = {
@@ -350,7 +393,7 @@ export const CITY_PAGE = {
   title: "BORA {city}",
   people: "{n} pessoas já querem a BORA em {city}.",
   one: "{city} acaba de entrar no mapa.",
-  goal: "Meta inicial: 500",
+  goal: "Meta inicial: {n}",
   done: "{pct}% concluído",
   next: "Você pode ser a próxima pessoa a colocar {city} no mapa.",
   cta: "QUERO A BORA EM {city}",
