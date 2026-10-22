@@ -1,5 +1,7 @@
-// Onde a BORA já está. Fonte: caixa-bora/conhecimento/negocio.md (Alex e site da BORA, set/2026; aulas experimentais, 16/10/2026).
-// `scope: "state"` cobre o estado inteiro (DF é uma praça só; em SC a cidade-sede ainda não foi confirmada).
+// Onde a BORA já está. Fonte: páginas de horários do site da BORA, enviadas pelo Alex em 22/10/2026 (lista de locais em caixa-bora/conhecimento/negocio.md).
+// Regra do Alex (22/10/2026): cidade com ponto físico da BORA não aceita cadastro; cidade vizinha aceita.
+// `scope: "state"` cobre o estado inteiro: só o DF, porque os serviços de CEP devolvem "Brasília" para todas as regiões administrativas.
+// `lat`/`lng`: o local principal de treino da cidade (OpenStreetMap), não o centro da cidade.
 // `trialUrl`: página de aula experimental da praça. Quem digita o CEP ou ZIP dela é levado para lá.
 // Praça sem `trialUrl` continua mandando para o site da BORA.
 import { isUsSlug, type Locale } from "../locale";
@@ -7,16 +9,20 @@ import { isUsSlug, type Locale } from "../locale";
 export type Unit = { slug: string; city: string; uf: string; lat: number; lng: number; scope: "city" | "state"; label?: string; showLabel?: boolean; labelDy?: number; url?: string; trialUrl?: string };
 
 export const UNITS: Unit[] = [
-  { slug: "sp-sao-paulo", city: "São Paulo", uf: "SP", lat: -23.55, lng: -46.63, scope: "city", showLabel: true, trialUrl: "https://boraassessoria.com/aula-experimental-sao-paulo/" },
-  { slug: "sp-sao-jose-dos-campos", city: "São José dos Campos", uf: "SP", lat: -23.18, lng: -45.88, scope: "city", trialUrl: "https://boraassessoria.com/aula-experimental-sao-jose-dos-campos/" },
-  { slug: "sp-indaiatuba", city: "Indaiatuba", uf: "SP", lat: -23.09, lng: -47.22, scope: "city" },
-  { slug: "mg-belo-horizonte", city: "Belo Horizonte", uf: "MG", lat: -19.92, lng: -43.94, scope: "city", showLabel: true },
-  { slug: "mg-lagoa-da-prata", city: "Lagoa da Prata", uf: "MG", lat: -20.02, lng: -45.54, scope: "city" },
-  { slug: "rj-rio-de-janeiro", city: "Rio de Janeiro", uf: "RJ", lat: -22.91, lng: -43.17, scope: "city", showLabel: true },
-  { slug: "sc-florianopolis", city: "Florianópolis", uf: "SC", lat: -27.59, lng: -48.55, scope: "state", label: "Santa Catarina", showLabel: true },
-  { slug: "rn-natal", city: "Natal", uf: "RN", lat: -5.79, lng: -35.21, scope: "city", showLabel: true, trialUrl: "https://boraassessoria.com/aula-experimental-natal/" },
-  { slug: "es-vitoria", city: "Vitória", uf: "ES", lat: -20.32, lng: -40.34, scope: "city", showLabel: true, labelDy: 6 },
-  { slug: "pe-recife", city: "Recife", uf: "PE", lat: -8.05, lng: -34.88, scope: "city", showLabel: true, trialUrl: "https://boraassessoria.com/aula-experimental-recife/" },
+  { slug: "sp-sao-paulo", city: "São Paulo", uf: "SP", lat: -23.5877, lng: -46.6585, scope: "city", showLabel: true, trialUrl: "https://boraassessoria.com/aula-experimental-sao-paulo/" }, // Parque Ibirapuera
+  { slug: "sp-sao-jose-dos-campos", city: "São José dos Campos", uf: "SP", lat: -23.1983, lng: -45.8953, scope: "city", trialUrl: "https://boraassessoria.com/aula-experimental-sao-jose-dos-campos/" }, // Parque Vicentina Aranha
+  { slug: "sp-indaiatuba", city: "Indaiatuba", uf: "SP", lat: -23.0784, lng: -47.2008, scope: "city" }, // Centro Esportivo do Trabalhador
+  { slug: "mg-belo-horizonte", city: "Belo Horizonte", uf: "MG", lat: -19.9731, lng: -43.9428, scope: "city", showLabel: true }, // Praça Lagoa Seca, Belvedere (também Bike Clube Lagoa, Pampulha)
+  { slug: "mg-lagoa-santa", city: "Lagoa Santa", uf: "MG", lat: -19.6386, lng: -43.8861, scope: "city" }, // Av. Getúlio Vargas, Várzea
+  { slug: "mg-itabira", city: "Itabira", uf: "MG", lat: -19.6358, lng: -43.2086, scope: "city" }, // Praça da Praia
+  { slug: "mg-divinopolis", city: "Divinópolis", uf: "MG", lat: -20.1266, lng: -44.8843, scope: "city" }, // FT Training, Rua Pitangui
+  { slug: "mg-oliveira", city: "Oliveira", uf: "MG", lat: -20.6926, lng: -44.8268, scope: "city" }, // Prainha, Av. Maracanã
+  { slug: "mg-lagoa-da-prata", city: "Lagoa da Prata", uf: "MG", lat: -20.0311, lng: -45.5425, scope: "city" }, // LBS, Rua Dr. Rômulo Amorim
+  { slug: "rj-rio-de-janeiro", city: "Rio de Janeiro", uf: "RJ", lat: -22.9791, lng: -43.2126, scope: "city", showLabel: true }, // Lagoa, Clube dos Caiçaras (também Posto 5, Barra)
+  { slug: "es-vitoria", city: "Vitória", uf: "ES", lat: -20.2711, lng: -40.276, scope: "city", showLabel: true, labelDy: 6 }, // Praia de Camburi
+  { slug: "sc-balneario-camboriu", city: "Balneário Camboriú", uf: "SC", lat: -27.0047, lng: -48.6251, scope: "city", showLabel: true }, // Av. Atlântica com Rua 3300
+  { slug: "rn-natal", city: "Natal", uf: "RN", lat: -5.8378, lng: -35.204, scope: "city", showLabel: true, trialUrl: "https://boraassessoria.com/aula-experimental-natal/" }, // UFRN
+  { slug: "pe-recife", city: "Recife", uf: "PE", lat: -8.0369, lng: -34.9048, scope: "city", showLabel: true, trialUrl: "https://boraassessoria.com/aula-experimental-recife/" }, // Parque da Jaqueira
   { slug: "df-brasilia", city: "Brasília", uf: "DF", lat: -15.78, lng: -47.93, scope: "state", showLabel: true },
   // EUA
   { slug: "us-fl-miami", city: "Miami", uf: "US-FL", lat: 25.77, lng: -80.19, scope: "city", showLabel: true, trialUrl: "https://boraassessoria.com/aula-experimental-miami/" },
