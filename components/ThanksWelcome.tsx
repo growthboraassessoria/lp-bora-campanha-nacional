@@ -9,7 +9,8 @@ import { useCopy } from "./LocaleProvider";
 import Headline from "./Headline";
 import QualificationForm from "./QualificationForm";
 
-const SEEN = "bora_thanks_welcome";
+/** Marca da aba: a delay e as perguntas já passaram. Recarregar não repete; um cadastro novo apaga a marca (LeadForm). */
+export const SEEN = "bora_thanks_welcome";
 const DURATION = 5;
 const FOCUSABLE = "a[href], button:not([disabled]), input:not([disabled])";
 

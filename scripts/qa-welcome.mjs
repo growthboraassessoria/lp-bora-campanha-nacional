@@ -73,6 +73,11 @@ for (const [i, mode, w, h] of [[1, "responde", 1440, 900], [2, "pula", 390, 844]
   await page.reload({ waitUntil: "networkidle0" });
   await wait(1200);
   check(await page.$eval("html", (e) => e.classList.contains("welcome-done")), `${mode}: recarregar não repete`);
+  // Outro cadastro na mesma aba (o caso do Alex em 26/10): a delay e as perguntas aparecem de novo.
+  await signup(page, i + 10);
+  const again = await page.waitForSelector('[data-welcome-phase="popup"]', { timeout: 9000 }).then(() => true, () => false);
+  await wait(900);
+  check(again && !!(await page.$(".welcome__card--qual .chip")), `${mode}: novo cadastro na mesma aba mostra a delay e as perguntas`);
   await page.close();
 }
 await browser.close();

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { fill } from "@/lib/copy";
 import { ufLabel } from "@/lib/locale";
 import { trialLinks, unitBlocking, type Unit } from "@/lib/geo/units";
+import { SEEN as WELCOME_SEEN } from "./ThanksWelcome";
 import { formatCpf, formatDateInput, formatPhoneFor, formatPostal, messagesFor, validateLead, type FieldErrors } from "@/lib/validation";
 import { track } from "@/lib/analytics";
 import { gsap } from "@/lib/gsap";
@@ -198,6 +199,12 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
       if (city) onPlaced?.(city);
       setMsg({ kind: "ok", text: d.created ? fill(FORM.placedLine, { city: city?.city ?? FORM.cityFallback }) : FORM.existing });
       track(d.created ? "form_completed_client" : "form_existing_client", { uf: city?.uf, variant });
+      // Cadastro novo na mesma aba: a página de obrigado mostra de novo a delay e as perguntas.
+      try {
+        sessionStorage.removeItem(WELCOME_SEEN);
+      } catch {
+        /* privado */
+      }
       setTimeout(() => window.location.assign(d.redirect ?? cfg.routes.thanks), d.created ? 900 : 1400);
     } catch {
       setMsg({ kind: "err", text: M.generic });
