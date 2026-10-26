@@ -91,9 +91,12 @@ export const FORM = {
     text: "Você não precisa esperar a campanha: já dá para treinar com a gente aí.",
     cta: "CONHECER A BORA {city}",
     fix: "Corrigir CEP",
-    trialText: "Você não precisa esperar a campanha: agende uma aula experimental e conheça a BORA {city}.",
-    trialCta: "AGENDAR AULA EXPERIMENTAL",
+    trialText: "Se ainda não é, a gente leva você para agendar uma aula experimental na BORA {city}.",
     redirecting: "Abrindo a página da aula experimental…",
+    question: "Você já é aluno BORA?",
+    yes: "SIM, SOU ALUNO",
+    no: "NÃO SOU ALUNO",
+    pick: "Escolha onde fazer a sua aula experimental.",
   },
 };
 

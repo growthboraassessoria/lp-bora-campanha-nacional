@@ -94,9 +94,12 @@ export const FORM = {
     text: "No need to wait for the campaign: you can already train with us there.",
     cta: "MEET BORA {city}",
     fix: "Change ZIP code",
-    trialText: "No need to wait for the campaign: book a trial class and meet BORA {city}.",
-    trialCta: "BOOK A TRIAL CLASS",
+    trialText: "If not, we'll take you to book a trial class at BORA {city}.",
     redirecting: "Opening the trial class page…",
+    question: "Are you already a BORA member?",
+    yes: "YES, I'M A MEMBER",
+    no: "NOT YET",
+    pick: "Choose where to take your trial class.",
   },
 };
 

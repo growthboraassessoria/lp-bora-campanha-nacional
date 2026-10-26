@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import Link from "next/link";
 import { fill } from "@/lib/copy";
 import { ufLabel } from "@/lib/locale";
-import { trialLink, unitBlocking, type Unit } from "@/lib/geo/units";
+import { trialLinks, unitBlocking, type Unit } from "@/lib/geo/units";
 import { formatCpf, formatDateInput, formatPhoneFor, formatPostal, messagesFor, validateLead, type FieldErrors } from "@/lib/validation";
 import { track } from "@/lib/analytics";
 import { gsap } from "@/lib/gsap";
@@ -44,6 +44,8 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
   const [cepStatus, setCepStatus] = useState<"idle" | "loading" | "error">("idle");
   const [city, setCity] = useState<ResolvedCity | null>(null);
   const [unit, setUnit] = useState<Unit | null>(null);
+  // Quem não é aluno numa praça com mais de uma aula experimental escolhe o local.
+  const [unitPick, setUnitPick] = useState(false);
   const [fields, setFields] = useState({ first_name: "", last_name: "", phone: "", email: "", cpf: "", birth_date: "", sex: "" });
   const [consent, setConsent] = useState(false);
   const [sms, setSms] = useState(false);
@@ -99,6 +101,8 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
     }
   }, [step]);
 
+  const trials = unit ? trialLinks(unit) : [];
+
   async function resolve(digits: string) {
     if (digits === lastCep.current) return;
     lastCep.current = digits;
@@ -115,10 +119,11 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
       track("cep_resolved", { uf: d.uf, city: d.city, approx: d.approx, variant });
       // Praça onde a BORA já está (só no Brasil): em vez do cadastro, o caminho é o site.
       const u = cfg.features.units ? unitBlocking(d.slug, d.uf, digits) : null;
+      setUnitPick(false);
       if (u) {
         setUnit(u);
         setStep("unit");
-        track("unit_match", { uf: d.uf, city: d.city, unit: u.slug, trial: !!u.trialUrl, variant });
+        track("unit_match", { uf: d.uf, city: d.city, unit: u.slug, trial: (u.trials?.length ?? 0) > 0, variant });
       } else {
         setUnit(null);
         setStep("confirm");
@@ -151,6 +156,7 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
     setStep("cep");
     setCity(null);
     setUnit(null);
+    setUnitPick(false);
     setCep("");
     lastCep.current = "";
     onCity?.(null);
@@ -239,22 +245,50 @@ export default function LeadForm({ id = "cadastro", variant = "hero", onCity, on
           <div className="confirm unit">
             <p className="confirm__q" data-step-item>{FORM.unit.eyebrow}</p>
             <p className="unit__title" data-step-item>{fill(FORM.unit.title, { city: city.city })}</p>
-            <p className="unit__text" data-step-item>{unit.trialUrl ? fill(FORM.unit.trialText, { city: unit.label ?? unit.city }) : FORM.unit.text}</p>
-            <div className="confirm__actions" data-step-item>
-              {unit.trialUrl ? (
-                // Praça com aula experimental: o botão leva para a página dela, na mesma aba.
-                <a className="btn btn--green btn-arrow unit__trial" href={trialLink(unit) ?? unit.trialUrl} onClick={() => track("trial_click", { unit: unit.slug, variant })}>
-                  {FORM.unit.trialCta}
-                </a>
-              ) : (
-                <a className="btn btn--black btn-arrow" href={unit.url ?? SITE.studentUrl} target="_blank" rel="noopener" onClick={() => track("unit_click", { unit: unit.slug, variant })}>
-                  {fill(FORM.unit.cta, { city: unit.label ?? unit.city })}
-                </a>
-              )}
-              <button type="button" className="confirm__fix" onClick={fixCity}>
-                {FORM.unit.fix}
-              </button>
-            </div>
+            {trials.length === 0 ? (
+              <>
+                <p className="unit__text" data-step-item>{FORM.unit.text}</p>
+                <div className="confirm__actions" data-step-item>
+                  <a className="btn btn--black btn-arrow" href={unit.url ?? SITE.studentUrl} target="_blank" rel="noopener" onClick={() => track("unit_click", { unit: unit.slug, variant })}>
+                    {fill(FORM.unit.cta, { city: unit.label ?? unit.city })}
+                  </a>
+                  <button type="button" className="confirm__fix" onClick={fixCity}>{FORM.unit.fix}</button>
+                </div>
+              </>
+            ) : unitPick ? (
+              <>
+                <p className="unit__text">{FORM.unit.pick}</p>
+                <div className="confirm__actions">
+                  {trials.map((t) => (
+                    <a key={t.url} className="btn btn--green btn-arrow unit__trial" href={t.url} onClick={() => track("trial_click", { unit: unit.slug, trial: t.label ?? null, variant })}>
+                      {(t.label ?? unit.city).toUpperCase()}
+                    </a>
+                  ))}
+                  <button type="button" className="confirm__fix" onClick={fixCity}>{FORM.unit.fix}</button>
+                </div>
+              </>
+            ) : (
+              <>
+                {/* Praça com aula experimental: aluno vai para o site; quem não é vai para a aula, na mesma aba. */}
+                <p className="unit__question" data-step-item>{FORM.unit.question}</p>
+                <p className="unit__text" data-step-item>{fill(FORM.unit.trialText, { city: unit.label ?? unit.city })}</p>
+                <div className="confirm__actions" data-step-item>
+                  <a className="btn btn--black btn-arrow" href={unit.url ?? SITE.studentUrl} target="_blank" rel="noopener" onClick={() => track("unit_click", { unit: unit.slug, student: true, variant })}>
+                    {FORM.unit.yes}
+                  </a>
+                  {trials.length === 1 ? (
+                    <a className="btn btn--green btn-arrow unit__trial" href={trials[0].url} onClick={() => track("trial_click", { unit: unit.slug, variant })}>
+                      {FORM.unit.no}
+                    </a>
+                  ) : (
+                    <button type="button" className="btn btn--green btn-arrow" onClick={() => { setUnitPick(true); track("trial_pick", { unit: unit.slug, variant }); }}>
+                      {FORM.unit.no}
+                    </button>
+                  )}
+                  <button type="button" className="confirm__fix" onClick={fixCity}>{FORM.unit.fix}</button>
+                </div>
+              </>
+            )}
           </div>
         ) : null}
 

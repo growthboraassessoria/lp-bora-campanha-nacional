@@ -6,7 +6,7 @@ import type { ProfilePatch } from "@/lib/db";
 import { safeLead } from "@/lib/profile";
 import { getCurrentLead } from "@/lib/server/session";
 import { resolvePostal } from "@/lib/server/postal";
-import { trialLink, unitBlocking } from "@/lib/geo/units";
+import { trialLinks, unitBlocking } from "@/lib/geo/units";
 import { getCopy, fill } from "@/lib/copy";
 import { cleanInstagram, messagesFor, storedPhone, titleCase, validateProfile } from "@/lib/validation";
 import { LOCALES, localeOfLead } from "@/lib/locale";
@@ -54,7 +54,7 @@ export async function PATCH(req: Request) {
       const unit = unitBlocking(r.slug, r.uf, cep);
       if (unit) {
         const { SITE, FORM } = getCopy(locale);
-        return NextResponse.json({ ok: false, unit: { slug: unit.slug, city: unit.city, uf: unit.uf, url: unit.url ?? SITE.studentUrl, trial_url: trialLink(unit) }, errors: { cep: fill(FORM.unit.title, { city: r.city }) } }, { status: 409 });
+        return NextResponse.json({ ok: false, unit: { slug: unit.slug, city: unit.city, uf: unit.uf, url: unit.url ?? SITE.studentUrl, trial_url: trialLinks(unit)[0]?.url ?? null }, errors: { cep: fill(FORM.unit.title, { city: r.city }) } }, { status: 409 });
       }
     }
     await store.upsertCity({ slug: r.slug, name: r.city, uf: r.uf, ibge: r.ibge, lat: r.lat, lng: r.lng, approx_location: r.approx, state_name: r.stateName });
