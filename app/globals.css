@@ -413,6 +413,8 @@ html.welcome-done .welcome { display: none !important; }
 }
 .welcome__sticker { width: 88px; height: auto; margin: -8px 0 4px; transform: rotate(-8deg); }
 .welcome__card .display { max-width: 16ch; }
+.welcome__card--qual { width: min(100%, 640px); max-height: calc(100dvh - 40px); overflow-y: auto; overscroll-behavior: contain; }
+.welcome__card--qual .qual { justify-self: stretch; }
 .welcome__text { font-size: 17px; color: var(--fg-2); max-width: 34ch; line-height: 1.4; }
 .welcome__skip { font-size: 14px; font-weight: 700; color: var(--fg-2); text-decoration: underline; text-underline-offset: 4px; min-height: 44px; justify-self: center; }
 .welcome__x {
@@ -428,6 +430,7 @@ html.welcome-done .welcome { display: none !important; }
     width: 100%; border-radius: 28px 28px 0 0;
     padding: 28px 20px calc(22px + env(safe-area-inset-bottom, 0px));
   }
+  .welcome__card--qual { max-height: 92dvh; }
 }
 
 /* ── Convite para aluno BORA postar a campanha ── */

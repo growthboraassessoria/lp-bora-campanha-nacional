@@ -6,7 +6,7 @@ import { useCopy } from "./LocaleProvider";
 
 type Q = { key: string; label: string; options?: readonly string[]; type?: string };
 
-export default function QualificationForm({ onDone }: { onDone?: () => void }) {
+export default function QualificationForm({ onDone, onStep }: { onDone?: () => void; onStep?: () => void }) {
   const { THANKS } = useCopy();
   const steps = THANKS.qualification.steps as unknown as readonly (readonly Q[])[];
   const [step, setStep] = useState(0);
@@ -56,7 +56,7 @@ export default function QualificationForm({ onDone }: { onDone?: () => void }) {
         {last ? (
           <button type="button" className="btn btn--green" onClick={send} disabled={state === "sending" || Object.keys(answers).length === 0}>{THANKS.qualification.send}</button>
         ) : (
-          <button type="button" className="btn btn--green btn-arrow" onClick={() => setStep(step + 1)}>{THANKS.qualification.next}</button>
+          <button type="button" className="btn btn--green btn-arrow" onClick={() => { setStep(step + 1); onStep?.(); }}>{THANKS.qualification.next}</button>
         )}
       </div>
     </div>

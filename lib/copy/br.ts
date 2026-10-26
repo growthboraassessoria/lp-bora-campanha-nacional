@@ -254,6 +254,7 @@ export const THANKS = {
     kicker: "BORA, VAMOS EM FRENTE",
     lines: ["VOCÊ ESTÁ DENTRO.", "OLÁ, {name}.", "{city} ENTROU NO MAPA."],
     aria: "Você está dentro. {city} entrou no mapa.",
+    questionsEyebrow: "QUASE LÁ, {name}",
   },
   popup: {
     eyebrow: "PRÓXIMO PASSO",

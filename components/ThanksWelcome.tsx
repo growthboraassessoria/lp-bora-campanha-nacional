@@ -1,25 +1,28 @@
 "use client";
-// Delay imersiva de 5s na página de obrigado: tela preta, símbolo, frases e pista. No fim, o pop-up do grupo.
-import { useCallback, useLayoutEffect, useRef, useState } from "react";
+// Delay imersiva de 5s na página de obrigado: tela preta, símbolo, frases e pista.
+// Depois, as perguntas (opcionais) e, ao terminar ou pular, o pop-up do grupo.
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { fill } from "@/lib/copy";
 import { gsap } from "@/lib/gsap";
 import { track } from "@/lib/analytics";
 import { useCopy } from "./LocaleProvider";
 import Headline from "./Headline";
+import QualificationForm from "./QualificationForm";
 
 const SEEN = "bora_thanks_welcome";
 const DURATION = 5;
+const FOCUSABLE = "a[href], button:not([disabled]), input:not([disabled])";
 
 type Props = { name: string; city: string; uf: string; groupUrl: string | null };
 
 export default function ThanksWelcome({ name, city, uf, groupUrl }: Props) {
   const { THANKS } = useCopy();
   const rootRef = useRef<HTMLDivElement>(null);
-  const ctaRef = useRef<HTMLElement>(null);
-  const skipRef = useRef<HTMLButtonElement>(null);
-  const closeRef = useRef<HTMLButtonElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const phaseRef = useRef<"delay" | "popup">("delay");
+  const viewRef = useRef<"questions" | "group">("questions");
   const doneRef = useRef(false);
+  const [view, setView] = useState<"questions" | "group">("questions");
   const [off, setOff] = useState(false);
 
   const finish = useCallback(() => {
@@ -49,6 +52,28 @@ export default function ThanksWelcome({ name, city, uf, groupUrl }: Props) {
     track("group_popup_dismiss", { uf, has_group: !!groupUrl });
     closeOverlay();
   }, [closeOverlay, groupUrl, uf]);
+
+  // Das perguntas para o grupo: respondeu ("done") ou pulou ("skip").
+  const toGroup = useCallback(
+    (how: "done" | "skip") => {
+      if (viewRef.current === "group") return;
+      viewRef.current = "group";
+      if (how === "skip") track("qualification_skip", { uf, source: "thanks" });
+      track("group_popup_view", { uf, has_group: !!groupUrl });
+      setView("group");
+    },
+    [groupUrl, uf],
+  );
+
+  // A cada troca de conteúdo do pop-up, volta ao topo e põe o foco no primeiro controle.
+  useEffect(() => {
+    if (phaseRef.current !== "popup") return;
+    const card = cardRef.current;
+    if (!card) return;
+    card.scrollTop = 0;
+    const target = view === "group" ? card.querySelector<HTMLElement>("#welcome-join") : card.querySelector<HTMLElement>(".chip");
+    target?.focus();
+  }, [view]);
 
   useLayoutEffect(() => {
     try {
@@ -85,8 +110,8 @@ export default function ThanksWelcome({ name, city, uf, groupUrl }: Props) {
         box.setAttribute("aria-hidden", "false");
       }
       track("thanks_welcome_complete", { uf, has_group: !!groupUrl });
-      track("group_popup_view", { uf, has_group: !!groupUrl });
-      (ctaRef.current as HTMLElement | null)?.focus();
+      track("qualification_view", { uf, source: "thanks" });
+      cardRef.current?.querySelector<HTMLElement>(".chip")?.focus();
     };
 
     const ctx = gsap.context(() => {
@@ -127,11 +152,12 @@ export default function ThanksWelcome({ name, city, uf, groupUrl }: Props) {
       if (phaseRef.current !== "popup") return;
       if (e.key === "Escape") {
         e.preventDefault();
-        dismissPopup();
+        if (viewRef.current === "questions") toGroup("skip");
+        else dismissPopup();
         return;
       }
       if (e.key !== "Tab") return;
-      const nodes = [ctaRef.current, skipRef.current, closeRef.current].filter((el): el is HTMLElement => !!el && el.offsetParent !== null);
+      const nodes = Array.from(cardRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE) ?? []).filter((el) => el.offsetParent !== null);
       if (!nodes.length) return;
       const first = nodes[0];
       const last = nodes[nodes.length - 1];
@@ -154,13 +180,14 @@ export default function ThanksWelcome({ name, city, uf, groupUrl }: Props) {
         document.querySelectorAll("header, main, footer").forEach((el) => el.removeAttribute("inert"));
       }
     };
-  }, [dismissPopup, finish, groupUrl, uf]);
+  }, [dismissPopup, finish, groupUrl, toGroup, uf]);
 
   if (off) return null;
 
   const lines = THANKS.welcome.lines.map((l) => fill(l, { name, city }));
   const title = THANKS.group.title.map((l) => fill(l, { uf }));
   const aria = fill(THANKS.welcome.aria, { city });
+  const asking = view === "questions";
 
   return (
     <div ref={rootRef} className="welcome" data-welcome-phase="delay" role="presentation">
@@ -188,49 +215,57 @@ export default function ThanksWelcome({ name, city, uf, groupUrl }: Props) {
       </div>
 
       <div className="welcome__dialog" role="dialog" aria-modal="true" aria-labelledby="welcome-title" aria-hidden="true" inert>
-        <button type="button" className="welcome__backdrop" tabIndex={-1} aria-hidden="true" onClick={dismissPopup} />
-        <div className="welcome__card">
-          <button ref={closeRef} type="button" className="welcome__x" aria-label={THANKS.popup.close} onClick={dismissPopup} />
-          <img className="welcome__sticker" src="/brand/sticker-fist-bump-green.webp" alt={THANKS.popup.sticker} width={220} height={220} />
-          <p className="eyebrow eyebrow--dot">{THANKS.popup.eyebrow}</p>
-          <Headline id="welcome-title" lines={title} size="s" green={[1]} />
-          <p className="welcome__text">{groupUrl ? THANKS.popup.text : THANKS.popup.soon}</p>
-          {groupUrl ? (
-            <a
-              ref={(el) => {
-                ctaRef.current = el;
+        {/* Nas perguntas o fundo não fecha, para ninguém perder as respostas sem querer. */}
+        <button type="button" className="welcome__backdrop" tabIndex={-1} aria-hidden="true" onClick={asking ? undefined : dismissPopup} />
+        {asking ? (
+          <div ref={cardRef} className="welcome__card welcome__card--qual">
+            <button type="button" className="welcome__x" aria-label={THANKS.qualification.skip} onClick={() => toGroup("skip")} />
+            <p className="eyebrow eyebrow--dot">{fill(THANKS.welcome.questionsEyebrow, { name })}</p>
+            <Headline id="welcome-title" lines={THANKS.qualification.title} size="s" green={[1]} />
+            <p className="welcome__text">{THANKS.qualification.text}</p>
+            <QualificationForm
+              onDone={() => toGroup("done")}
+              onStep={() => {
+                if (cardRef.current) cardRef.current.scrollTop = 0;
               }}
-              id="welcome-join"
-              className="btn btn--green btn--block btn-arrow"
-              href={groupUrl}
-              target="_blank"
-              rel="noopener"
-              onClick={() => {
-                track("group_join_click", { uf, source: "popup" });
-                closeOverlay();
-              }}
-            >
-              {THANKS.group.cta}
-            </a>
-          ) : (
-            <button
-              ref={(el) => {
-                ctaRef.current = el;
-              }}
-              id="welcome-join"
-              type="button"
-              className="btn btn--green btn--block"
-              onClick={dismissPopup}
-            >
-              {THANKS.popup.continue}
+            />
+            <button type="button" className="welcome__skip" onClick={() => toGroup("skip")}>
+              {THANKS.qualification.skip}
             </button>
-          )}
-          {groupUrl ? (
-            <button ref={skipRef} type="button" className="welcome__skip" onClick={dismissPopup}>
-              {THANKS.popup.skip}
-            </button>
-          ) : null}
-        </div>
+          </div>
+        ) : (
+          <div ref={cardRef} className="welcome__card">
+            <button type="button" className="welcome__x" aria-label={THANKS.popup.close} onClick={dismissPopup} />
+            <img className="welcome__sticker" src="/brand/sticker-fist-bump-green.webp" alt={THANKS.popup.sticker} width={220} height={220} />
+            <p className="eyebrow eyebrow--dot">{THANKS.popup.eyebrow}</p>
+            <Headline id="welcome-title" lines={title} size="s" green={[1]} />
+            <p className="welcome__text">{groupUrl ? THANKS.popup.text : THANKS.popup.soon}</p>
+            {groupUrl ? (
+              <a
+                id="welcome-join"
+                className="btn btn--green btn--block btn-arrow"
+                href={groupUrl}
+                target="_blank"
+                rel="noopener"
+                onClick={() => {
+                  track("group_join_click", { uf, source: "popup" });
+                  closeOverlay();
+                }}
+              >
+                {THANKS.group.cta}
+              </a>
+            ) : (
+              <button id="welcome-join" type="button" className="btn btn--green btn--block" onClick={dismissPopup}>
+                {THANKS.popup.continue}
+              </button>
+            )}
+            {groupUrl ? (
+              <button type="button" className="welcome__skip" onClick={dismissPopup}>
+                {THANKS.popup.skip}
+              </button>
+            ) : null}
+          </div>
+        )}
       </div>
     </div>
   );
