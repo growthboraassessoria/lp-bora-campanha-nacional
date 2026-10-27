@@ -50,9 +50,18 @@ export function track(name: string, props: EventProps = {}) {
   }
 }
 
-/** Liga GA4 e Meta Pixel quando as variáveis públicas existirem. Chamado uma vez pelo AnalyticsBoot. */
+let booted = false;
+
+/** Liga GA4 e Meta Pixel quando as variáveis públicas existirem, e a Audácia sempre. Chamado uma vez pelo AnalyticsBoot. */
 export function bootProviders() {
-  const w = window as unknown as { gtag?: (...a: unknown[]) => void; fbq?: (...a: unknown[]) => void };
+  if (booted) return;
+  booted = true;
+  const w = window as unknown as { gtag?: (...a: unknown[]) => void; fbq?: (...a: unknown[]) => void; audaciaTrack?: (n: string, p: EventProps) => void };
+  // O script da Audácia pode carregar depois do primeiro evento: confere na hora de cada envio.
+  // A visualização de página a própria Audácia já conta.
+  registerProvider((n, p) => {
+    if (n !== "page_view" && typeof w.audaciaTrack === "function") w.audaciaTrack(n, p);
+  });
   if (process.env.NEXT_PUBLIC_GA_ID && typeof w.gtag === "function") registerProvider((n, p) => w.gtag!("event", n, p));
   if (process.env.NEXT_PUBLIC_META_PIXEL_ID && typeof w.fbq === "function") registerProvider((n, p) => w.fbq!("trackCustom", n, p));
 }

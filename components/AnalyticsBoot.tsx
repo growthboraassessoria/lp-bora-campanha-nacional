@@ -1,5 +1,6 @@
 "use client";
 // Liga os provedores de analytics (quando configurados) e registra a visualização de página.
+// O tracker da Audácia roda em todas as páginas, sem variável de ambiente (chave pública do Alex, 27/10/2026).
 import { useEffect } from "react";
 import Script from "next/script";
 import { bootProviders, track } from "@/lib/analytics";
@@ -14,6 +15,7 @@ export default function AnalyticsBoot() {
   }, []);
   return (
     <>
+      <Script src="/audacia-tracker.js" strategy="afterInteractive" />
       {GA ? (
         <>
           <Script src={`https://www.googletagmanager.com/gtag/js?id=${GA}`} strategy="afterInteractive" />
