@@ -20,6 +20,8 @@ export async function POST(req: Request) {
   }
   const answers: Record<string, string> = {};
   for (const [k, v] of Object.entries(body)) if (KEYS.has(k) && typeof v === "string" && v.trim()) answers[k] = v.trim().slice(0, 120);
+  // Todas as perguntas são obrigatórias (Alex, 27/10/2026).
+  if (Object.keys(answers).length < KEYS.size) return NextResponse.json({ ok: false, error: "incomplete" }, { status: 400 });
   try {
     const store = getStore();
     await store.saveQualification(lead.id, answers);

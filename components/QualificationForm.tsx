@@ -1,10 +1,11 @@
 "use client";
 // Perguntas da campanha, em duas telas. Cada resposta vira dado para a chegada na cidade.
+// Todas são obrigatórias (Alex, 27/10/2026): o botão só libera com a tela inteira respondida.
 import { useState } from "react";
 import { track } from "@/lib/analytics";
 import { useCopy } from "./LocaleProvider";
 
-type Q = { key: string; label: string; options?: readonly string[]; type?: string };
+type Q = { key: string; label: string; options?: readonly string[]; type?: string; placeholder?: string };
 
 export default function QualificationForm({ onDone, onStep }: { onDone?: () => void; onStep?: () => void }) {
   const { THANKS } = useCopy();
@@ -33,6 +34,7 @@ export default function QualificationForm({ onDone, onStep }: { onDone?: () => v
 
   const current = steps[step];
   const last = step === steps.length - 1;
+  const complete = current.every((q) => (answers[q.key] ?? "").trim().length > 0);
 
   return (
     <div className="qual">
@@ -47,17 +49,18 @@ export default function QualificationForm({ onDone, onStep }: { onDone?: () => v
                 ))}
               </div>
             ) : (
-              <input id={`q-${q.key}`} className="qual__input" type="text" maxLength={80} value={answers[q.key] ?? ""} onChange={(e) => set(q.key, e.target.value)} />
+              <input id={`q-${q.key}`} className="qual__input" type="text" maxLength={80} required placeholder={q.placeholder} value={answers[q.key] ?? ""} onChange={(e) => set(q.key, e.target.value)} />
             )}
           </div>
         ))}
       </div>
       <div className="qual__actions">
         {last ? (
-          <button type="button" className="btn btn--green" onClick={send} disabled={state === "sending" || Object.keys(answers).length === 0}>{THANKS.qualification.send}</button>
+          <button type="button" className="btn btn--green" onClick={send} disabled={state === "sending" || !complete}>{THANKS.qualification.send}</button>
         ) : (
-          <button type="button" className="btn btn--green btn-arrow" onClick={() => { setStep(step + 1); onStep?.(); }}>{THANKS.qualification.next}</button>
+          <button type="button" className="btn btn--green btn-arrow" disabled={!complete} onClick={() => { setStep(step + 1); onStep?.(); }}>{THANKS.qualification.next}</button>
         )}
+        {complete ? null : <p className="qual__hint">{THANKS.qualification.missing}</p>}
       </div>
     </div>
   );

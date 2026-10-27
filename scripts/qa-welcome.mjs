@@ -1,4 +1,5 @@
-// Página de obrigado: cadastro → delay → perguntas → grupo. Duas rodadas: respondendo (desktop) e pulando (celular).
+// Página de obrigado: cadastro → delay → perguntas (obrigatórias) → grupo. Duas rodadas: desktop e celular;
+// na do celular, tenta passar sem responder (X, Pular, Esc, botão) antes de responder.
 // Lê as respostas em .data/db.json, então roda só contra um servidor local sem Supabase:
 // SUPABASE_URL= SUPABASE_SERVICE_ROLE_KEY= npx next dev -p 3310 && node scripts/qa-welcome.mjs <pasta> http://localhost:3310
 import puppeteer from "puppeteer-core";
@@ -37,7 +38,7 @@ async function signup(page, tag) {
 }
 let fails = 0;
 const check = (ok, msg) => { if (!ok) fails++; console.log(ok ? "ok  " : "FALHA", msg); };
-for (const [i, mode, w, h] of [[1, "responde", 1440, 900], [2, "pula", 390, 844]]) {
+for (const [i, mode, w, h] of [[1, "responde", 1440, 900], [2, "tenta pular", 390, 844]]) {
   const page = await browser.newPage();
   await page.setViewport({ width: w, height: h, isMobile: w < 600, hasTouch: w < 600 });
   const email = await signup(page, i);
@@ -48,16 +49,27 @@ for (const [i, mode, w, h] of [[1, "responde", 1440, 900], [2, "pula", 390, 844]
   check(!!(await page.$(".welcome__card--qual .chip")), `${mode}: depois da delay vêm as perguntas`);
   check(!(await page.$("#welcome-join")), `${mode}: o grupo ainda não aparece`);
   await page.screenshot({ path: `${out}/${i}-perguntas-1.png` });
-  if (mode === "responde") {
-    for (const q of await page.$$(".welcome__card--qual .qual__q")) { const c = await q.$(".chip"); if (c) await c.click(); }
-    await page.click(".qual__actions .btn");
-    await wait(500);
-    await page.screenshot({ path: `${out}/${i}-perguntas-2.png` });
-    for (const q of await page.$$(".welcome__card--qual .qual__q")) { const c = await q.$(".chip"); if (c) await c.click(); else { const inp = await q.$("input"); await inp.type("Clube QA"); } }
-    await page.click(".qual__actions .btn");
-  } else {
-    await page.click(".welcome__card--qual .welcome__skip");
+  const disabled = () => page.$eval(".qual__actions .btn", (b) => b.disabled);
+  if (mode !== "responde") {
+    check(!(await page.$(".welcome__card--qual .welcome__x, .welcome__card--qual .welcome__skip")), `${mode}: sem X e sem "Pular" nas perguntas`);
+    check(await disabled(), `${mode}: "Continuar" travado sem respostas`);
+    await page.keyboard.press("Escape");
+    await wait(400);
+    check(!!(await page.$(".welcome__card--qual")) && !(await page.$("#welcome-join")), `${mode}: Esc não pula as perguntas`);
+    const first = await page.$$(".welcome__card--qual .qual__q");
+    await (await first[0].$(".chip")).click();
+    check(await disabled(), `${mode}: com uma resposta só, ainda travado`);
   }
+  for (const q of await page.$$(".welcome__card--qual .qual__q")) { const c = await q.$(".chip"); if (c) await c.click(); }
+  check(!(await disabled()), `${mode}: tela 1 respondida libera "Continuar"`);
+  await page.click(".qual__actions .btn");
+  await wait(500);
+  await page.screenshot({ path: `${out}/${i}-perguntas-2.png` });
+  for (const q of await page.$$(".welcome__card--qual .qual__q")) { const c = await q.$(".chip"); if (c) await c.click(); }
+  check(await disabled(), `${mode}: "Enviar" travado com clube e trabalho em branco`);
+  for (const inp of await page.$$(".welcome__card--qual .qual__input")) await inp.type("Nenhum");
+  check(!(await disabled()), `${mode}: tela 2 respondida libera "Enviar"`);
+  await page.click(".qual__actions .btn");
   await page.waitForSelector("#welcome-join", { timeout: 5000 }).catch(() => null);
   await wait(500);
   check(!!(await page.$("#welcome-join")), `${mode}: depois das perguntas vem o grupo`);
@@ -68,7 +80,7 @@ for (const [i, mode, w, h] of [[1, "responde", 1440, 900], [2, "pula", 390, 844]
   const db = JSON.parse(readFileSync(".data/db.json", "utf8"));
   const lead = db.leads.find((l) => l.email === email);
   const answers = (db.qualification ?? []).filter((a) => a.lead_id === lead?.id);
-  check(mode === "responde" ? answers.length === 9 : answers.length === 0, `${mode}: ${answers.length} respostas gravadas`);
+  check(answers.length === 9, `${mode}: ${answers.length} respostas gravadas`);
   // Recarregar não repete a delay nem as perguntas na mesma sessão.
   await page.reload({ waitUntil: "networkidle0" });
   await wait(1200);

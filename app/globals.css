@@ -369,6 +369,8 @@ a { color: inherit; text-decoration: none; }
 .qual__input { width: 100%; background: transparent; border: 0; border-bottom: 1.5px solid var(--line-strong); padding: 8px 0; font-size: 18px; color: #000; outline: none; border-radius: 0; }
 .qual__input:focus { border-color: #000; }
 .qual__actions { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; margin-top: 18px; }
+.qual__hint { font-size: 14px; color: var(--fg-2); }
+.qual__actions .btn[disabled] { cursor: not-allowed; }
 .qual__skip { font-size: 14px; font-weight: 700; color: var(--fg-2); text-decoration: underline; text-underline-offset: 4px; min-height: 44px; display: inline-flex; align-items: center; }
 
 /* ── Delay e pop-up da página de obrigado ── */

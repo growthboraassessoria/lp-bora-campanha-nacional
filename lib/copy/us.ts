@@ -261,7 +261,7 @@ export const THANKS = {
   founder: BR_THANKS.founder,
   qualification: {
     title: ["TELL US MORE", "ABOUT YOU."],
-    text: "Optional. It helps us show up the right way in your city.",
+    text: "Answer to continue. It takes less than a minute and helps us show up the right way in your city.",
     steps: [
       [
         { key: "runs", label: "Do you run already?", options: ["Yes, regularly", "Sometimes", "Just starting", "Not yet"] },
@@ -272,13 +272,13 @@ export const THANKS = {
       [
         { key: "open", label: "Would you join a BORA group run in your city?", options: ["Definitely", "Maybe", "No"] },
         { key: "intent", label: "Would you train with BORA if it were here?", options: ["Yes", "Depends on the price", "Only in person", "Not sure yet"] },
-        { key: "club", label: "Which running club do you run with?", type: "text" },
-        { key: "company", label: "Where do you work?", type: "text" },
+        { key: "club", label: "Which running club do you run with?", type: "text", placeholder: "If none, type \"none\"" },
+        { key: "company", label: "Where do you work?", type: "text", placeholder: "Company or field" },
       ],
     ],
     next: "CONTINUE",
     send: "SEND",
-    skip: "Skip",
+    missing: "Answer every question to continue.",
     done: "Thanks. That helps a lot.",
   },
 };
@@ -291,7 +291,7 @@ export const SURVEY = {
   cta: "CONTINUE",
   sending: "LOOKING…",
   found: "Hi, {name}.",
-  foundText: "Answer what you want. It helps us show up the right way in your city.",
+  foundText: "Answer every question. It helps us show up the right way in your city.",
   noAccount: "Not on the map yet?",
   signup: "Sign me up",
   profile: "Open my profile",

@@ -55,8 +55,12 @@ await page.screenshot({ path: `${out}/3a-delay.png` });
 await page.waitForSelector('[data-welcome-phase="popup"]', { timeout: 8000 });
 await wait(700);
 await page.screenshot({ path: `${out}/3b-popup.png` });
-// Pula as perguntas e, no pop-up do grupo, fecha com "Agora não" (ou "Continuar", sem link do estado).
-await page.click(".welcome__card--qual .welcome__skip");
+// Responde as perguntas (obrigatórias) e, no pop-up do grupo, fecha com "Agora não" (ou "Continuar", sem link do estado).
+for (let tela = 0; tela < 2; tela++) {
+  for (const q of await page.$$(".welcome__card--qual .qual__q")) { const c = await q.$(".chip"); if (c) await c.click(); else await (await q.$("input")).type("Nenhum"); }
+  await page.click(".qual__actions .btn");
+  await wait(500);
+}
 await page.waitForSelector("#welcome-join", { timeout: 5000 });
 await wait(400);
 if (await page.$(".welcome__card .welcome__skip")) await page.click(".welcome__card .welcome__skip");

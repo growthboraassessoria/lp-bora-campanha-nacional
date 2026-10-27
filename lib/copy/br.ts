@@ -291,7 +291,7 @@ export const THANKS = {
   founder: { eyebrow: "QUER COMEÇAR AGORA?", title: "FOUNDING 50", slots: "{n} vagas restantes em {city}.", none: "As 50 vagas de {city} já foram preenchidas.", cta: "CONHECER O PROGRAMA FUNDADOR" },
   qualification: {
     title: ["NOS CONTA MAIS", "SOBRE VOCÊ."],
-    text: "Opcional. Ajuda a gente a chegar do jeito certo na sua cidade.",
+    text: "Responda para continuar. Leva menos de um minuto e ajuda a gente a chegar do jeito certo na sua cidade.",
     steps: [
       [
         { key: "runs", label: "Você já corre?", options: ["Sim, regularmente", "Às vezes", "Estou começando", "Ainda não"] },
@@ -303,13 +303,13 @@ export const THANKS = {
         { key: "open", label: "Participaria de um treino da BORA na sua cidade?", options: ["Com certeza", "Talvez", "Não"] },
         { key: "intent", label: "Treinaria com a BORA se ela existisse aqui?", options: ["Sim", "Depende do preço", "Só presencial", "Não sei ainda"] },
         { key: "price", label: "Quanto você pagaria por mês?", options: ["Até R$ 100", "R$ 100 a R$ 200", "R$ 200 a R$ 300", "Mais de R$ 300"] },
-        { key: "club", label: "Qual running club você frequenta?", type: "text" },
-        { key: "company", label: "Onde você trabalha?", type: "text" },
+        { key: "club", label: "Qual running club você frequenta?", type: "text", placeholder: "Se não frequenta, escreva \"nenhum\"" },
+        { key: "company", label: "Onde você trabalha?", type: "text", placeholder: "Empresa ou área" },
       ],
     ],
     next: "CONTINUAR",
     send: "ENVIAR",
-    skip: "Pular",
+    missing: "Responda todas as perguntas para continuar.",
     done: "Valeu. Isso ajuda muito.",
   },
 };
@@ -322,7 +322,7 @@ export const SURVEY = {
   cta: "CONTINUAR",
   sending: "PROCURANDO…",
   found: "Olá, {name}.",
-  foundText: "Responde o que quiser. Ajuda a gente a chegar do jeito certo na sua cidade.",
+  foundText: "Responda todas as perguntas. Ajuda a gente a chegar do jeito certo na sua cidade.",
   noAccount: "Ainda não está no mapa?",
   signup: "Fazer meu cadastro",
   profile: "Acessar meu perfil",

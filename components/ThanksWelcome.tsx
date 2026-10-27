@@ -1,6 +1,6 @@
 "use client";
 // Delay imersiva de 5s na página de obrigado: tela preta, símbolo, frases e pista.
-// Depois, as perguntas (opcionais) e, ao terminar ou pular, o pop-up do grupo.
+// Depois, as perguntas (obrigatórias: sem X, sem pular, Esc não fecha) e, ao enviar, o pop-up do grupo.
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { fill } from "@/lib/copy";
 import { gsap } from "@/lib/gsap";
@@ -54,17 +54,13 @@ export default function ThanksWelcome({ name, city, uf, groupUrl }: Props) {
     closeOverlay();
   }, [closeOverlay, groupUrl, uf]);
 
-  // Das perguntas para o grupo: respondeu ("done") ou pulou ("skip").
-  const toGroup = useCallback(
-    (how: "done" | "skip") => {
-      if (viewRef.current === "group") return;
-      viewRef.current = "group";
-      if (how === "skip") track("qualification_skip", { uf, source: "thanks" });
-      track("group_popup_view", { uf, has_group: !!groupUrl });
-      setView("group");
-    },
-    [groupUrl, uf],
-  );
+  // Das perguntas para o grupo, depois de enviar as respostas.
+  const toGroup = useCallback(() => {
+    if (viewRef.current === "group") return;
+    viewRef.current = "group";
+    track("group_popup_view", { uf, has_group: !!groupUrl });
+    setView("group");
+  }, [groupUrl, uf]);
 
   // A cada troca de conteúdo do pop-up, volta ao topo e põe o foco no primeiro controle.
   useEffect(() => {
@@ -153,8 +149,7 @@ export default function ThanksWelcome({ name, city, uf, groupUrl }: Props) {
       if (phaseRef.current !== "popup") return;
       if (e.key === "Escape") {
         e.preventDefault();
-        if (viewRef.current === "questions") toGroup("skip");
-        else dismissPopup();
+        if (viewRef.current === "group") dismissPopup();
         return;
       }
       if (e.key !== "Tab") return;
@@ -181,7 +176,7 @@ export default function ThanksWelcome({ name, city, uf, groupUrl }: Props) {
         document.querySelectorAll("header, main, footer").forEach((el) => el.removeAttribute("inert"));
       }
     };
-  }, [dismissPopup, finish, groupUrl, toGroup, uf]);
+  }, [dismissPopup, finish, groupUrl, uf]);
 
   if (off) return null;
 
@@ -220,19 +215,15 @@ export default function ThanksWelcome({ name, city, uf, groupUrl }: Props) {
         <button type="button" className="welcome__backdrop" tabIndex={-1} aria-hidden="true" onClick={asking ? undefined : dismissPopup} />
         {asking ? (
           <div ref={cardRef} className="welcome__card welcome__card--qual">
-            <button type="button" className="welcome__x" aria-label={THANKS.qualification.skip} onClick={() => toGroup("skip")} />
             <p className="eyebrow eyebrow--dot">{fill(THANKS.welcome.questionsEyebrow, { name })}</p>
             <Headline id="welcome-title" lines={THANKS.qualification.title} size="s" green={[1]} />
             <p className="welcome__text">{THANKS.qualification.text}</p>
             <QualificationForm
-              onDone={() => toGroup("done")}
+              onDone={toGroup}
               onStep={() => {
                 if (cardRef.current) cardRef.current.scrollTop = 0;
               }}
             />
-            <button type="button" className="welcome__skip" onClick={() => toGroup("skip")}>
-              {THANKS.qualification.skip}
-            </button>
           </div>
         ) : (
           <div ref={cardRef} className="welcome__card">
