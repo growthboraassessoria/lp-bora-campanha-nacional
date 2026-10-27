@@ -21,7 +21,11 @@ Sem `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY`, em desenvolvimento os dados v�
 
 ## Variáveis de ambiente
 
-Veja `.env.example`. As obrigatórias em produção: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `LEAD_COOKIE_SECRET`, `NEXT_PUBLIC_SITE_URL`. Opcionais: `NEXT_PUBLIC_SHORT_DOMAIN` (só quando o domínio curto estiver apontando para a LP), `NEXT_PUBLIC_GA_ID`, `NEXT_PUBLIC_META_PIXEL_ID`, Turnstile e `NEXT_PUBLIC_CHECKOUT_URL`.
+Veja `.env.example`. As obrigatórias em produção: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `LEAD_COOKIE_SECRET`, `NEXT_PUBLIC_SITE_URL`. Opcionais: `NEXT_PUBLIC_SHORT_DOMAIN` (só quando o domínio curto estiver apontando para a LP), Turnstile e `NEXT_PUBLIC_CHECKOUT_URL`.
+
+## Medição
+
+Em todas as páginas (Brasil e EUA), pelo `components/AnalyticsBoot.tsx`: Google Tag `GT-M69HCKWM` (GA4 `G-0KFY4QJ8LT`), pixel da Meta `298345730957487` e tracker da Audácia (`public/audacia-tracker.js`). Os IDs ficam em `lib/analytics.ts`; `NEXT_PUBLIC_GA_ID` e `NEXT_PUBLIC_META_PIXEL_ID` trocam os dois sem mexer no código. Cada `track()` da LP vai para o banco e para as três ferramentas; o cadastro novo (`form_completed_client`) vira `generate_lead` no GA4 e `Lead` na Meta. A Meta recebe `PageView` também nas trocas de página sem recarregar; o GA4 conta essas trocas pela medição otimizada (histórico do navegador).
 
 ## Banco
 

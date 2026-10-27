@@ -50,18 +50,32 @@ export function track(name: string, props: EventProps = {}) {
   }
 }
 
+/** Google Tag (GA4 G-0KFY4QJ8LT) e pixel da Meta da BORA (Alex, 27/10/2026). Uma variável pública na Vercel, se existir, tem prioridade. */
+export const GA_ID = process.env.NEXT_PUBLIC_GA_ID || "GT-M69HCKWM";
+export const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID || "298345730957487";
+
+/** Eventos da LP que viram conversão padrão no GA4 e na Meta. Os outros seguem com o nome da LP. */
+const STANDARD: Record<string, { ga: string; meta: string }> = {
+  form_completed_client: { ga: "generate_lead", meta: "Lead" },
+};
+
 let booted = false;
 
-/** Liga GA4 e Meta Pixel quando as variáveis públicas existirem, e a Audácia sempre. Chamado uma vez pelo AnalyticsBoot. */
+/** Repassa os eventos da LP ao GA4, à Meta e à Audácia. Chamado uma vez pelo AnalyticsBoot. */
 export function bootProviders() {
   if (booted) return;
   booted = true;
   const w = window as unknown as { gtag?: (...a: unknown[]) => void; fbq?: (...a: unknown[]) => void; audaciaTrack?: (n: string, p: EventProps) => void };
-  // O script da Audácia pode carregar depois do primeiro evento: confere na hora de cada envio.
-  // A visualização de página a própria Audácia já conta.
+  // Os scripts carregam depois da página: confere se cada ferramenta já existe na hora de cada envio.
+  // A visualização de página cada ferramenta já conta sozinha (AnalyticsBoot cuida da Meta nas trocas de página).
   registerProvider((n, p) => {
-    if (n !== "page_view" && typeof w.audaciaTrack === "function") w.audaciaTrack(n, p);
+    if (n === "page_view") return;
+    const std = STANDARD[n];
+    if (typeof w.gtag === "function") w.gtag("event", std?.ga ?? n, p);
+    if (typeof w.fbq === "function") {
+      if (std) w.fbq("track", std.meta, p);
+      else w.fbq("trackCustom", n, p);
+    }
+    if (typeof w.audaciaTrack === "function") w.audaciaTrack(n, p);
   });
-  if (process.env.NEXT_PUBLIC_GA_ID && typeof w.gtag === "function") registerProvider((n, p) => w.gtag!("event", n, p));
-  if (process.env.NEXT_PUBLIC_META_PIXEL_ID && typeof w.fbq === "function") registerProvider((n, p) => w.fbq!("trackCustom", n, p));
 }
